@@ -37,7 +37,9 @@ async def main(args):
     print(img_embedding.shape)
 
     print("Finding near duplicates...")
-    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=10)[:limit]
+    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=5)
+    if limit > 0:
+        near_duplicates = near_duplicates[:limit]
     img_pairs = get_image_pairs(near_duplicates, img_names)
 
     print("Analyzing pairs...")
