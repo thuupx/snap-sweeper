@@ -1,0 +1,5 @@
+.venv
+client_id.json
+imgs_embeddings.pkl
+__pycache__
+google-token.json
