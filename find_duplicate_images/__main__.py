@@ -1,0 +1,91 @@
+import argparse
+import asyncio
+
+from .utils import chunkify
+
+IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
+
+
+async def main(args):
+    img_folder = args.dir
+    limit = args.limit
+    batch_size = args.batch_size
+    import torch
+
+    from find_duplicate_images.compare_image_quality import analyze_pairs
+    from find_duplicate_images.process_images import (
+        find_near_duplicates,
+        get_image_pairs,
+        load_embeddings,
+    )
+
+    device = torch.device(
+        "mps"
+        if torch.backends.mps.is_built()
+        else "cuda" if torch.cuda.is_available() else "cpu"
+    )
+    print(f"Using device: {device}")
+    print(f"Loading images from {img_folder}")
+    print("Loading embeddings...")
+    img_embedding, img_names = load_embeddings(
+        img_folder, IMAGE_EMBEDDING_FILE, batch_size=batch_size, device=device
+    )
+    if img_embedding is None:
+        print("No embeddings found or loaded.")
+        return
+
+    print(img_embedding.shape)
+
+    print("Finding near duplicates...")
+    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=10)[:limit]
+    img_pairs = get_image_pairs(near_duplicates, img_names)
+
+    print("Analyzing pairs...")
+    results = await analyze_pairs(
+        img_pairs,
+    )
+
+    # Chunk the results into smaller chunks for better performance
+    results = list(chunkify(results, chunk_size=10))
+
+    for chunk in results:
+        for i, (best_img, worst_img, best_sharpness, worst_sharpness) in enumerate(
+            chunk
+        ):
+            score, idx1, idx2 = near_duplicates[i]
+            print("\n\nScore: {:.3f}".format(score))
+            print(f"Best Quality Image: {best_img}, Sharpness: {best_sharpness:.2f}")
+            print(f"Worst Quality Image: {worst_img}, Sharpness: {worst_sharpness:.2f}")
+
+    print("Done.")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Find and compare duplicate images based on sharpness, color, and layout."
+    )
+    parser.add_argument(
+        "--dir",
+        type=str,
+        default=None,
+        required=True,
+        help="Directory containing the images to process.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Limit the number of near duplicates to process. Default is 10.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=128,
+        help="Batch size to use when encoding images. Default is 128.",
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    asyncio.run(main(args))

@@ -1,19 +1,14 @@
-from sentence_transformers import SentenceTransformer, util
-from PIL import Image
 import glob
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 import numpy as np
 import torch
-from concurrent.futures import ThreadPoolExecutor
-import time
-import asyncio
+from PIL import Image
+from sentence_transformers import SentenceTransformer, util
 
-
-from async_compare_image_quality import async_analyze_pairs
-from utils import chunkify
-
-IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
-model = SentenceTransformer("clip-ViT-B-32")
+DEFAULT_MODEL = SentenceTransformer("clip-ViT-B-32")
 
 
 def load_image(filepath):
@@ -35,7 +30,7 @@ def encode_images(image_paths, model, batch_size=128, device=None):
                 images,
                 batch_size=batch_size,
                 convert_to_tensor=True,
-                show_progress_bar=False,
+                show_progress_bar=True,
                 device=device,
             )
             all_embeddings.append(embeddings)
@@ -69,7 +64,9 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
 
     if new_img_names:
         start_time = time.time()
-        new_img_embeddings = encode_images(new_img_names, model, batch_size, device)
+        new_img_embeddings = encode_images(
+            new_img_names, DEFAULT_MODEL, batch_size, device
+        )
         print(f"Encoding images took {(time.time() - start_time):.2f} seconds")
 
         # Convert new embeddings to CPU and combine with existing embeddings
@@ -102,46 +99,3 @@ def find_near_duplicates(img_embedding, threshold=1, top_k=10):
 
 def get_image_pairs(near_duplicates, img_names):
     return [(img_names[idx1], img_names[idx2]) for (_, idx1, idx2) in near_duplicates]
-
-
-async def main():
-    img_folder = "/Users/thupx/Documents/ThuPX/img"
-    device = torch.device("mps" if torch.backends.mps.is_built() else "cpu")
-    print(f"Using device: {device}")
-    print(f"Loading images from {img_folder}")
-    print("Loading embeddings...")
-    img_embedding, img_names = load_embeddings(
-        img_folder, IMAGE_EMBEDDING_FILE, batch_size=128, device=device
-    )
-    if img_embedding is None:
-        print("No embeddings found or loaded.")
-        return
-
-    print(img_embedding.shape)
-
-    print("Finding near duplicates...")
-    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=10)[:10]
-    img_pairs = get_image_pairs(near_duplicates, img_names)
-
-    print("Analyzing pairs...")
-    results = await async_analyze_pairs(
-        img_pairs,
-    )
-
-    # Chunk the results into smaller chunks for better performance
-    results = list(chunkify(results, chunk_size=10))
-
-    for chunk in results:
-        for i, (best_img, worst_img, best_sharpness, worst_sharpness) in enumerate(
-            chunk
-        ):
-            score, idx1, idx2 = near_duplicates[i]
-            print("\n\nScore: {:.3f}".format(score))
-            print(f"Best Quality Image: {best_img}, Sharpness: {best_sharpness:.2f}")
-            print(f"Worst Quality Image: {worst_img}, Sharpness: {worst_sharpness:.2f}")
-
-    print("Done.")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
