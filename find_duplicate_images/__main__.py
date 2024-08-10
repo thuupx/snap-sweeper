@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import time
 
 from .utils import chunkify
 
@@ -7,6 +8,7 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 
 async def main(args):
+    start_time = time.time()
     img_folder = args.dir
     limit = args.limit
     batch_size = args.batch_size
@@ -51,14 +53,13 @@ async def main(args):
     results = list(chunkify(results, chunk_size=10))
 
     for chunk in results:
-        for i, (best_img, worst_img, best_sharpness, worst_sharpness) in enumerate(
-            chunk
-        ):
+        for i, (best_img, worst_img, best_score, worst_score) in enumerate(chunk):
             score, idx1, idx2 = near_duplicates[i]
             print("\n\nScore: {:.3f}".format(score))
-            print(f"Best Quality Image: {best_img}, Sharpness: {best_sharpness:.2f}")
-            print(f"Worst Quality Image: {worst_img}, Sharpness: {worst_sharpness:.2f}")
+            print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
+            print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
 
+    print(f"Total time: {(time.time() - start_time):.2f} seconds")
     print("Done.")
 
 

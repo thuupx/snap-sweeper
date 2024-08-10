@@ -1,10 +1,18 @@
-import cv2
 import asyncio
-from tqdm.asyncio import tqdm
+import time
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+
+import cv2
+import numpy as np
+from brisque import BRISQUE
+from PIL import Image
 from skimage.metrics import structural_similarity as ssim
+from tqdm.asyncio import tqdm
 
+from find_duplicate_images.utils import chunkify, memorize_imread
 
-from find_duplicate_images.utils import memorize_imread, chunkify
+lock = Lock()
 
 
 def compute_sharpness(image_path):
@@ -18,75 +26,38 @@ def compute_sharpness(image_path):
     return laplacian_var
 
 
-async def compare_pair(img1_path, img2_path):
-    """
-    Compares the sharpness, color, and layout of two images.
+def get_np_array(img_path):
+    img = memorize_imread(img_path)
+    cvt = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    resized = cv2.resize(cvt, (64, 64))
+    ndarray = np.asarray(resized)
+    return ndarray
 
-    @return: tuple of (best_img, worst_img, best_score, worst_score)
+
+def compute_brisque_score(img_path):
+    np_array = get_np_array(img_path)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        with lock:
+            score = executor.submit(BRISQUE(url=False).score, img=np_array)
+            score = score.result()
+            return score
+
+
+async def image_quality_analysis(img1_path, img2_path):
+    """
+    Compares scores of two images.
     """
     loop = asyncio.get_event_loop()
 
-    # Run tasks concurrently
-    sharpness1_task = loop.run_in_executor(None, compute_sharpness, img1_path)
-    sharpness2_task = loop.run_in_executor(None, compute_sharpness, img2_path)
-    color_similarity_task = loop.run_in_executor(
-        None, compute_color_similarity, img1_path, img2_path
-    )
-    layout_similarity_task = loop.run_in_executor(
-        None, compute_layout_similarity, img1_path, img2_path
-    )
+    score1_task = loop.run_in_executor(None, compute_brisque_score, img1_path)
+    score2_task = loop.run_in_executor(None, compute_brisque_score, img2_path)
 
-    # Await the results
-    sharpness1, sharpness2, color_similarity, layout_similarity = await asyncio.gather(
-        sharpness1_task, sharpness2_task, color_similarity_task, layout_similarity_task
-    )
-
-    score1 = sharpness1 + color_similarity + layout_similarity
-    score2 = sharpness2 + color_similarity + layout_similarity
+    score1, score2 = await asyncio.gather(score1_task, score2_task)
 
     if score1 > score2:
         return (img1_path, img2_path, score1, score2)
     else:
         return (img2_path, img1_path, score2, score1)
-
-
-def compute_color_similarity(image_path1, image_path2):
-    """
-    Computes the color similarity between two images using histogram comparison.
-    """
-    image1 = memorize_imread(image_path1)
-    image2 = memorize_imread(image_path2)
-
-    if image1 is None or image2 is None:
-        return 0
-
-    hsv_image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2HSV)
-    hsv_image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2HSV)
-
-    hist_image1 = cv2.calcHist([hsv_image1], [0, 1], None, [50, 60], [0, 180, 0, 256])
-    hist_image2 = cv2.calcHist([hsv_image2], [0, 1], None, [50, 60], [0, 180, 0, 256])
-
-    cv2.normalize(hist_image1, hist_image1, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-    cv2.normalize(hist_image2, hist_image2, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-
-    color_similarity = cv2.compareHist(hist_image1, hist_image2, cv2.HISTCMP_INTERSECT)
-
-    return color_similarity
-
-
-def compute_layout_similarity(image_path1, image_path2):
-    """
-    Computes the layout similarity between two images using SSIM.
-    """
-    image1 = memorize_imread(image_path1, cv2.IMREAD_GRAYSCALE)
-    image2 = memorize_imread(image_path2, cv2.IMREAD_GRAYSCALE)
-
-    if image1 is None or image2 is None:
-        return 0
-
-    ssim_index, _ = ssim(image1, image2, full=True)
-
-    return ssim_index
 
 
 async def analyze_pairs(img_pairs):
@@ -97,7 +68,8 @@ async def analyze_pairs(img_pairs):
     with tqdm(total=len(img_pairs), desc="Processing pairs") as progress_bar:
         for chunk in chunkify(img_pairs, chunk_size=CHUNK_SIZE):
             tasks = [
-                compare_pair(img1_path, img2_path) for img1_path, img2_path in chunk
+                image_quality_analysis(img1_path, img2_path)
+                for img1_path, img2_path in chunk
             ]
             for future in asyncio.as_completed(tasks):
                 result = await future
