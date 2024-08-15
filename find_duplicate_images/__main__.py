@@ -21,6 +21,7 @@ async def main(args):
         get_image_pairs,
         load_embeddings,
     )
+    from find_duplicate_images.process_worst_image import process_worst_image
 
     device = torch.device(
         "mps"
@@ -63,6 +64,7 @@ async def main(args):
             print("\n\nSimilarity Score: {:.3f}".format(similarity))
             print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
             print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
+            process_worst_image(worst_img)
 
     print(f"Total time: {(time.time() - start_time):.2f} seconds")
     print("Done.")

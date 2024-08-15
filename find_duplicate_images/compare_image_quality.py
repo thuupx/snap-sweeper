@@ -43,14 +43,18 @@ def compute_brisque_score(img_path):
             return score
 
 
-async def image_quality_analysis(img1_path, img2_path, similarity):
+async def image_quality_analysis(img1_path: str, img2_path: str, similarity: float):
     """
     Compares scores of two images.
     """
     loop = asyncio.get_event_loop()
 
-    score1_task = loop.run_in_executor(None, compute_brisque_score, img1_path)
-    score2_task = loop.run_in_executor(None, compute_brisque_score, img2_path)
+    score1_task: asyncio.Future[float] = loop.run_in_executor(
+        None, compute_brisque_score, img1_path
+    )
+    score2_task: asyncio.Future[float] = loop.run_in_executor(
+        None, compute_brisque_score, img2_path
+    )
 
     q_score1, q_score2 = await asyncio.gather(score1_task, score2_task)
 
@@ -60,7 +64,7 @@ async def image_quality_analysis(img1_path, img2_path, similarity):
         return (img2_path, img1_path, q_score2, q_score1, similarity)
 
 
-async def analyze_pairs(img_pairs):
+async def analyze_pairs(img_pairs) -> list[tuple[str, str, float, float, float]]:
     results = []
     BATCH_SIZE = 5
     CHUNK_SIZE = len(img_pairs) // BATCH_SIZE
