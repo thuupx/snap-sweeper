@@ -91,11 +91,20 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
 
 
 def find_near_duplicates(img_embedding, threshold=1, top_k=10):
+    MIN_THRESHOLD = 0.9
     duplicates = util.paraphrase_mining_embeddings(img_embedding, top_k=top_k)
     print(f"Found {len(duplicates)} duplicates")
-    near_duplicates = [entry for entry in duplicates if entry[0] <= threshold]
+    near_duplicates = [
+        entry
+        for entry in duplicates
+        if entry[0] <= threshold and entry[0] > MIN_THRESHOLD
+    ]
+
     return near_duplicates
 
 
 def get_image_pairs(near_duplicates, img_names):
-    return [(img_names[idx1], img_names[idx2]) for (_, idx1, idx2) in near_duplicates]
+    return [
+        (img_names[idx1], img_names[idx2], similarity)
+        for (similarity, idx1, idx2) in near_duplicates
+    ]

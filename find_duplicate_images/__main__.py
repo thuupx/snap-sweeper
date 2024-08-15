@@ -12,6 +12,7 @@ async def main(args):
     img_folder = args.dir
     limit = args.limit
     batch_size = args.batch_size
+    top_k = args.top_k
     import torch
 
     from find_duplicate_images.compare_image_quality import analyze_pairs
@@ -39,7 +40,7 @@ async def main(args):
     print(img_embedding.shape)
 
     print("Finding near duplicates...")
-    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=5)
+    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=top_k)
     if limit > 0:
         near_duplicates = near_duplicates[:limit]
     img_pairs = get_image_pairs(near_duplicates, img_names)
@@ -49,13 +50,17 @@ async def main(args):
         img_pairs,
     )
 
+    results = sorted(results, key=lambda x: x[4], reverse=True)
+
+    print("Results: ", len(results))
     # Chunk the results into smaller chunks for better performance
     results = list(chunkify(results, chunk_size=10))
 
     for chunk in results:
-        for i, (best_img, worst_img, best_score, worst_score) in enumerate(chunk):
-            score, idx1, idx2 = near_duplicates[i]
-            print("\n\nScore: {:.3f}".format(score))
+        for i, (best_img, worst_img, best_score, worst_score, similarity) in enumerate(
+            chunk
+        ):
+            print("\n\nSimilarity Score: {:.3f}".format(similarity))
             print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
             print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
 
@@ -85,6 +90,12 @@ def parse_args():
         type=int,
         default=128,
         help="Batch size to use when encoding images. Default is 128.",
+    )
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="Number of near duplicates to find. Default is 10.",
     )
     return parser.parse_args()
 

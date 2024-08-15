@@ -43,7 +43,7 @@ def compute_brisque_score(img_path):
             return score
 
 
-async def image_quality_analysis(img1_path, img2_path):
+async def image_quality_analysis(img1_path, img2_path, similarity):
     """
     Compares scores of two images.
     """
@@ -52,12 +52,12 @@ async def image_quality_analysis(img1_path, img2_path):
     score1_task = loop.run_in_executor(None, compute_brisque_score, img1_path)
     score2_task = loop.run_in_executor(None, compute_brisque_score, img2_path)
 
-    score1, score2 = await asyncio.gather(score1_task, score2_task)
+    q_score1, q_score2 = await asyncio.gather(score1_task, score2_task)
 
-    if score1 > score2:
-        return (img1_path, img2_path, score1, score2)
+    if q_score1 > q_score2:
+        return (img1_path, img2_path, q_score1, q_score2, similarity)
     else:
-        return (img2_path, img1_path, score2, score1)
+        return (img2_path, img1_path, q_score2, q_score1, similarity)
 
 
 async def analyze_pairs(img_pairs):
@@ -68,8 +68,8 @@ async def analyze_pairs(img_pairs):
     with tqdm(total=len(img_pairs), desc="Processing pairs") as progress_bar:
         for chunk in chunkify(img_pairs, chunk_size=CHUNK_SIZE):
             tasks = [
-                image_quality_analysis(img1_path, img2_path)
-                for img1_path, img2_path in chunk
+                image_quality_analysis(img1_path, img2_path, similarity)
+                for img1_path, img2_path, similarity in chunk
             ]
             for future in asyncio.as_completed(tasks):
                 result = await future
