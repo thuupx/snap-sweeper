@@ -107,9 +107,25 @@ def find_near_duplicates(img_embedding: np.ndarray, threshold=1, top_k=10):
 
 def get_image_pairs(near_duplicates: list[list[float | int]], all_img_names: list[str]):
     """Get image pairs from the near duplicates list."""
+    # Collect a set of all image names that need to be checked
+    required_files = {
+        all_img_names[embedding_idx1]
+        for _, embedding_idx1, embedding_idx2 in near_duplicates
+    }.union(
+        {
+            all_img_names[embedding_idx2]
+            for _, embedding_idx1, embedding_idx2 in near_duplicates
+        }
+    )
+
+    # Use set comprehensions for quick lookup
+    existing_files = {
+        img_name for img_name in required_files if os.path.exists(img_name)
+    }
+
     return [
         (all_img_names[embedding_idx1], all_img_names[embedding_idx2], similarity)
         for (similarity, embedding_idx1, embedding_idx2) in near_duplicates
-        if os.path.exists(all_img_names[embedding_idx1])
-        and os.path.exists(all_img_names[embedding_idx2])
+        if all_img_names[embedding_idx1] in existing_files
+        and all_img_names[embedding_idx2] in existing_files
     ]

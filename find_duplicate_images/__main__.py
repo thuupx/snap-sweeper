@@ -34,8 +34,6 @@ async def main(args):
         print("No embeddings found or loaded.")
         return
 
-    print(img_embedding.shape)
-
     print("Finding near duplicates...")
     from find_duplicate_images.process_images import find_near_duplicates
 
