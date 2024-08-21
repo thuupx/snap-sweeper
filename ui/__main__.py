@@ -43,7 +43,6 @@ async def start_processing():
         tkinter.messagebox.showerror("Error", "No embeddings found or loaded.")
         return
 
-    print(embedding.shape)
     near_duplicates = find_near_duplicates(embedding, threshold=1, top_k=5)[:10]
     img_pairs = get_image_pairs(near_duplicates, img_names)
 
