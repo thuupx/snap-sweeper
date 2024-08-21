@@ -6,7 +6,7 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 async def find_and_move_duplicates_handler(
     img_folder, limit=0, batch_size=128, top_k=10
-) -> tuple[list, str]:
+) -> tuple[list[tuple[str, str, float, float, float]], str]:
     import torch
 
     from find_duplicate_images.compare_image_quality import analyze_pairs

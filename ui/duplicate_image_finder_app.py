@@ -73,6 +73,9 @@ class DuplicateImageFinderApp:
                 tkinter.messagebox.showerror("Error", error)
             else:
                 print(results)
+        except Exception as e:
+            print(e)
+            tkinter.messagebox.showerror("Error", str(e))
         finally:
             self.progress_bar.stop()
             self.btn_process.config(state=NORMAL)
