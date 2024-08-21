@@ -93,13 +93,13 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     return img_embedding, img_names
 
 
-def find_near_duplicates(img_embedding: np.ndarray, threshold=1, top_k=10):
-    MIN_THRESHOLD = 0.9
+def find_near_duplicates(img_embedding: np.ndarray, threshold=0.9, top_k=10):
+    MAX_THRESHOLD = 1
     duplicates = util.paraphrase_mining_embeddings(img_embedding, top_k=top_k)
     near_duplicates = [
         entry
         for entry in duplicates
-        if entry[0] <= threshold and entry[0] > MIN_THRESHOLD
+        if entry[0] <= MAX_THRESHOLD and entry[0] > threshold
     ]
 
     return near_duplicates

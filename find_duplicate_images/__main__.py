@@ -9,9 +9,12 @@ async def main(args):
     limit = args.limit
     batch_size = args.batch_size
     top_k = args.top_k
+    threshold = args.threshold
     from find_duplicate_images.handler import find_and_move_duplicates_handler
 
-    await find_and_move_duplicates_handler(img_folder, limit, batch_size, top_k)
+    await find_and_move_duplicates_handler(
+        img_folder, limit=limit, batch_size=batch_size, top_k=top_k, threshold=threshold
+    )
     print(f"Total time: {(time.time() - start_time):.2f} seconds")
 
 
@@ -44,6 +47,13 @@ def parse_args():
         default=2,
         help="Number of near duplicates to find. Default is 2.",
     )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.9,
+        help="Threshold for similarity score. Default is 0.9.",
+    )
+
     return parser.parse_args()
 
 

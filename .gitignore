@@ -3,3 +3,9 @@ client_id.json
 imgs_embeddings.pkl
 __pycache__
 google-token.json
+build
+dist
+*.spec
+DS_Store
+.DS_Store
+*.egg-info

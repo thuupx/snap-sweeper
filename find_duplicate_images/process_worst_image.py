@@ -1,7 +1,7 @@
 import os
 from find_duplicate_images.utils import move_file
 
-TO_BE_DELETED_DIR = "TO_BE_DELETED"
+DISCARDED_DIR = "DISCARDED"
 
 
 def process_worst_image(worst_img: str):
@@ -9,7 +9,7 @@ def process_worst_image(worst_img: str):
     if not BASE_DIR.endswith("/"):
         BASE_DIR += "/"
 
-    BASE_DIR = os.path.join(BASE_DIR, TO_BE_DELETED_DIR)
+    BASE_DIR = os.path.join(BASE_DIR, DISCARDED_DIR)
 
     if not os.path.exists(BASE_DIR):
         os.makedirs(BASE_DIR)

@@ -5,7 +5,7 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 
 async def find_and_move_duplicates_handler(
-    img_folder, limit=0, batch_size=128, top_k=10
+    img_folder, limit=0, batch_size=128, top_k=2, threshold=0.9
 ) -> tuple[list[tuple[str, str, float, float, float]], str]:
     import torch
 
@@ -34,7 +34,9 @@ async def find_and_move_duplicates_handler(
     print("Finding near duplicates...")
     from find_duplicate_images.process_images import find_near_duplicates
 
-    near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=top_k)
+    near_duplicates = find_near_duplicates(
+        img_embedding, threshold=threshold, top_k=top_k
+    )
     if limit > 0 and len(near_duplicates) > limit:
         near_duplicates = near_duplicates[:limit]
 
