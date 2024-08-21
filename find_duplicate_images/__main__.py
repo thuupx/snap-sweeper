@@ -16,12 +16,6 @@ async def main(args):
     import torch
 
     from find_duplicate_images.compare_image_quality import analyze_pairs
-    from find_duplicate_images.process_images import (
-        find_near_duplicates,
-        get_image_pairs,
-        load_embeddings,
-    )
-    from find_duplicate_images.process_worst_image import process_worst_image
 
     device = torch.device(
         "mps"
@@ -31,7 +25,9 @@ async def main(args):
     print(f"Using device: {device}")
     print(f"Loading images from {img_folder}")
     print("Loading embeddings...")
-    img_embedding, img_names = load_embeddings(
+    from find_duplicate_images.process_images import load_embeddings
+
+    img_embedding, img_names_db = load_embeddings(
         img_folder, IMAGE_EMBEDDING_FILE, batch_size=batch_size, device=device
     )
     if img_embedding is None:
@@ -41,10 +37,23 @@ async def main(args):
     print(img_embedding.shape)
 
     print("Finding near duplicates...")
+    from find_duplicate_images.process_images import find_near_duplicates
+
     near_duplicates = find_near_duplicates(img_embedding, threshold=1, top_k=top_k)
-    if limit > 0:
+    if limit > 0 and len(near_duplicates) > limit:
         near_duplicates = near_duplicates[:limit]
-    img_pairs = get_image_pairs(near_duplicates, img_names)
+
+    if len(near_duplicates) == 0:
+        print("No near duplicates found.")
+        return
+
+    from find_duplicate_images.process_images import get_image_pairs
+
+    img_pairs = get_image_pairs(near_duplicates, img_names_db)
+
+    if len(img_pairs) == 0:
+        print("No valid near duplicates pairs found.")
+        return
 
     print("Analyzing pairs...")
     results = await analyze_pairs(
@@ -56,6 +65,7 @@ async def main(args):
     print("Results: ", len(results))
     # Chunk the results into smaller chunks for better performance
     results = list(chunkify(results, chunk_size=10))
+    from find_duplicate_images.process_worst_image import process_worst_image
 
     for chunk in results:
         for i, (best_img, worst_img, best_score, worst_score, similarity) in enumerate(

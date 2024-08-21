@@ -1,4 +1,3 @@
-import glob
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -41,10 +40,12 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     """
     Loads the embeddings from the given file or computes them if they don't exist.
     """
-    img_names = list(glob.glob(os.path.join(img_folder, "*.JPG")))
+    from find_duplicate_images.utils import get_image_files
 
-    img_embedding = None
-    existing_img_names = []
+    img_names = get_image_files(img_folder)
+
+    img_embedding: np.ndarray | None = None
+    existing_img_names: list[str] = []
 
     # load embedding
     if os.path.exists(embedding_file) and os.path.getsize(embedding_file) > 0:
@@ -52,7 +53,7 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
             existing_data = np.load(f, allow_pickle=True).item()
             img_embedding = existing_data["embeddings"]
             existing_img_names = existing_data["img_names"]
-            print("Embedding loaded:", img_embedding.shape[0])
+            print("Embedding loaded shape: ", img_embedding.shape)
     else:
         print(f"File {embedding_file} not found, loading images...")
 
@@ -62,7 +63,9 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     ]
     print("New images to load:", len(new_img_names))
 
-    if new_img_names:
+    if len(new_img_names) == 0:
+        return img_embedding, existing_img_names
+    else:
         start_time = time.time()
         new_img_embeddings = encode_images(
             new_img_names, DEFAULT_MODEL, batch_size, device
@@ -90,10 +93,9 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     return img_embedding, img_names
 
 
-def find_near_duplicates(img_embedding, threshold=1, top_k=10):
+def find_near_duplicates(img_embedding: np.ndarray, threshold=1, top_k=10):
     MIN_THRESHOLD = 0.9
     duplicates = util.paraphrase_mining_embeddings(img_embedding, top_k=top_k)
-    print(f"Found {len(duplicates)} duplicates")
     near_duplicates = [
         entry
         for entry in duplicates
@@ -103,8 +105,11 @@ def find_near_duplicates(img_embedding, threshold=1, top_k=10):
     return near_duplicates
 
 
-def get_image_pairs(near_duplicates, img_names):
+def get_image_pairs(near_duplicates: list[list[float | int]], all_img_names: list[str]):
+    """Get image pairs from the near duplicates list."""
     return [
-        (img_names[idx1], img_names[idx2], similarity)
-        for (similarity, idx1, idx2) in near_duplicates
+        (all_img_names[embedding_idx1], all_img_names[embedding_idx2], similarity)
+        for (similarity, embedding_idx1, embedding_idx2) in near_duplicates
+        if os.path.exists(all_img_names[embedding_idx1])
+        and os.path.exists(all_img_names[embedding_idx2])
     ]
