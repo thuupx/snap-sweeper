@@ -94,8 +94,8 @@ def parse_args():
     parser.add_argument(
         "--limit",
         type=int,
-        default=10,
-        help="Limit the number of near duplicates to process. Default is 10.",
+        default=0,
+        help="Limit the number of near duplicates to process. Default is no limit.",
     )
     parser.add_argument(
         "--batch-size",
