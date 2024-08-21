@@ -41,8 +41,8 @@ def parse_args():
     parser.add_argument(
         "--top-k",
         type=int,
-        default=10,
-        help="Number of near duplicates to find. Default is 10.",
+        default=2,
+        help="Number of near duplicates to find. Default is 2.",
     )
     return parser.parse_args()
 
