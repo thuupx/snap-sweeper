@@ -1,5 +1,5 @@
 from os.path import join, dirname
-from google_photos_client import google_photos
+from google_photo.google_photos_client import google_photos
 
 
 def get_albums():
