@@ -6,7 +6,7 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 async def find_and_move_duplicates_handler(
     img_folder, limit=0, batch_size=128, top_k=10
-):
+) -> tuple[list, str]:
     import torch
 
     from find_duplicate_images.compare_image_quality import analyze_pairs
@@ -26,7 +26,10 @@ async def find_and_move_duplicates_handler(
     )
     if img_embedding is None:
         print("No embeddings found or loaded.")
-        return
+        return (
+            None,
+            "No embeddings found or loaded.",
+        )
 
     print("Finding near duplicates...")
     from find_duplicate_images.process_images import find_near_duplicates
@@ -37,7 +40,7 @@ async def find_and_move_duplicates_handler(
 
     if len(near_duplicates) == 0:
         print("No near duplicates found.")
-        return
+        return (None, "No near duplicates found.")
 
     from find_duplicate_images.process_images import get_image_pairs
 
@@ -45,7 +48,7 @@ async def find_and_move_duplicates_handler(
 
     if len(img_pairs) == 0:
         print("No valid near duplicates pairs found.")
-        return
+        return (None, "No valid near duplicates pairs found.")
 
     print("Analyzing pairs...")
     results = await analyze_pairs(
@@ -67,5 +70,5 @@ async def find_and_move_duplicates_handler(
             print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
             print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
             process_worst_image(worst_img)
-
-    print("Completed.")
+    print("Completed!")
+    return (results, "Completed!")
