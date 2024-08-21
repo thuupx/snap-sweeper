@@ -50,7 +50,7 @@ def is_image_file(file_path: str) -> bool:
     """Check if the given file is an image file."""
     try:
         # Attempt to read the image file using OpenCV
-        img = cv2.imread(file_path)
+        img = memorize_imread(file_path)
         # Check if the result is None (i.e., cv2 couldn't read the file as an image)
         return img is not None
     except Exception:
