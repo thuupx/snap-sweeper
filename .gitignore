@@ -5,7 +5,6 @@ __pycache__
 google-token.json
 build
 dist
-*.spec
 DS_Store
 .DS_Store
 *.egg-info

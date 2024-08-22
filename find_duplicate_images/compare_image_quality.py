@@ -1,13 +1,10 @@
 import asyncio
-import time
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 
 import cv2
 import numpy as np
 from brisque import BRISQUE
-from PIL import Image
-from skimage.metrics import structural_similarity as ssim
 from tqdm.asyncio import tqdm
 
 from find_duplicate_images.utils import chunkify, memorize_imread
