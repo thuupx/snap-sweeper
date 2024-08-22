@@ -1,16 +1,8 @@
-import os
-import time
-from concurrent.futures import ThreadPoolExecutor
-
-import numpy as np
-import torch
 from PIL import Image
-from sentence_transformers import SentenceTransformer, util
-
-DEFAULT_MODEL = SentenceTransformer("clip-ViT-B-32")
 
 
 def load_image(filepath):
+
     return Image.open(filepath)
 
 
@@ -19,6 +11,9 @@ def encode_images(image_paths, model, batch_size=128, device=None):
     Encodes a list of images using the given model.
     """
     all_embeddings = []
+    from concurrent.futures import ThreadPoolExecutor
+
+    import torch
 
     # Use ThreadPoolExecutor for concurrent image loading
     with ThreadPoolExecutor() as executor:
@@ -40,6 +35,10 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     """
     Loads the embeddings from the given file or computes them if they don't exist.
     """
+
+    import numpy as np
+    import os
+
     from find_duplicate_images.utils import get_image_files
 
     img_names = get_image_files(img_folder)
@@ -66,6 +65,12 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     if len(new_img_names) == 0:
         return img_embedding, existing_img_names
     else:
+        import time
+
+        from sentence_transformers import SentenceTransformer
+
+        DEFAULT_MODEL = SentenceTransformer("clip-ViT-B-32")
+
         start_time = time.time()
         new_img_embeddings = encode_images(
             new_img_names, DEFAULT_MODEL, batch_size, device
@@ -93,8 +98,11 @@ def load_embeddings(img_folder, embedding_file, batch_size=128, device=None):
     return img_embedding, img_names
 
 
-def find_near_duplicates(img_embedding: np.ndarray, threshold=0.9, top_k=10):
+def find_near_duplicates(img_embedding, threshold=0.9, top_k=10):
+    from sentence_transformers import util
+
     MAX_THRESHOLD = 1
+
     duplicates = util.paraphrase_mining_embeddings(img_embedding, top_k=top_k)
     near_duplicates = [
         entry
@@ -117,6 +125,8 @@ def get_image_pairs(near_duplicates: list[list[float | int]], all_img_names: lis
             for _, embedding_idx1, embedding_idx2 in near_duplicates
         }
     )
+
+    import os
 
     # Use set comprehensions for quick lookup
     existing_files = {

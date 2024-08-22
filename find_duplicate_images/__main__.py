@@ -1,9 +1,6 @@
-import argparse
-import asyncio
-import time
-
-
 async def main(args):
+    import time
+
     start_time = time.time()
     img_folder = args.dir
     limit = args.limit
@@ -19,6 +16,8 @@ async def main(args):
 
 
 def parse_args():
+    import argparse
+
     parser = argparse.ArgumentParser(
         description="Find and compare duplicate images based on sharpness, color, and layout."
     )
@@ -59,4 +58,6 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    import asyncio
+
     asyncio.run(main(args))

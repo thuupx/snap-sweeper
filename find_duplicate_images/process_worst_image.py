@@ -1,10 +1,10 @@
-import os
-from find_duplicate_images.utils import move_file
-
 DISCARDED_DIR = "DISCARDED"
 
 
 def process_worst_image(worst_img: str):
+    import os
+    from find_duplicate_images.utils import move_file
+
     BASE_DIR = worst_img.rsplit("/", 1)[0]
     if not BASE_DIR.endswith("/"):
         BASE_DIR += "/"

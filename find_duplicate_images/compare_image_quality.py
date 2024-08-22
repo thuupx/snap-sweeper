@@ -1,11 +1,5 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-
-import cv2
-import numpy as np
-from brisque import BRISQUE
-from tqdm.asyncio import tqdm
 
 from find_duplicate_images.utils import chunkify, memorize_imread
 
@@ -16,6 +10,8 @@ def compute_sharpness(image_path):
     """
     Computes the sharpness of an image using the Laplacian of Gaussian.
     """
+    import cv2
+
     image = memorize_imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
         return 0
@@ -25,14 +21,22 @@ def compute_sharpness(image_path):
 
 def get_np_array(img_path):
     img = memorize_imread(img_path)
+    import cv2
+
     cvt = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     resized = cv2.resize(cvt, (64, 64))
-    ndarray = np.asarray(resized)
+    from numpy import asarray
+
+    ndarray = asarray(resized)
     return ndarray
 
 
 def compute_brisque_score(img_path):
     np_array = get_np_array(img_path)
+    from concurrent.futures import ThreadPoolExecutor
+
+    from brisque import BRISQUE
+
     with ThreadPoolExecutor(max_workers=1) as executor:
         with lock:
             score = executor.submit(BRISQUE(url=False).score, img=np_array)
@@ -65,6 +69,7 @@ async def analyze_pairs(img_pairs) -> list[tuple[str, str, float, float, float]]
     results = []
     BATCH_SIZE = 5
     CHUNK_SIZE = len(img_pairs) // BATCH_SIZE
+    from tqdm.asyncio import tqdm
 
     with tqdm(total=len(img_pairs), desc="Processing pairs") as progress_bar:
         for chunk in chunkify(img_pairs, chunk_size=CHUNK_SIZE):

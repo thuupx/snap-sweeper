@@ -1,6 +1,3 @@
-from find_duplicate_images.utils import chunkify
-
-
 IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 
@@ -60,6 +57,8 @@ async def find_and_move_duplicates_handler(
     results = sorted(results, key=lambda x: x[4], reverse=True)
 
     print("Results: ", len(results))
+    from find_duplicate_images.utils import chunkify
+
     # Chunk the results into smaller chunks for better performance
     results = list(chunkify(results, chunk_size=10))
     from find_duplicate_images.process_worst_image import process_worst_image

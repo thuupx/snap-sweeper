@@ -1,10 +1,4 @@
-import os
 from functools import lru_cache
-from multiprocessing import Pool, cpu_count
-
-import cv2
-
-HASH_FILE = "dir_hash.json"
 
 
 def chunkify(lst, chunk_size=20):
@@ -13,16 +7,20 @@ def chunkify(lst, chunk_size=20):
 
 
 @lru_cache(maxsize=None)
-def memorize_imread(filepath, flags=cv2.IMREAD_COLOR):
+def memorize_imread(filepath, flags=None):
     """
     Reads an image from a file using OpenCV, with memoization.
     """
+    import cv2
+
+    flags = flags or cv2.IMREAD_COLOR
+
     return cv2.imread(filepath, flags)
 
 
 def copy_file(file_path: str, dest_folder: str):
     import os
-    from distutils.file_util import copy_file as _copy_file
+    from shutil import copyfile
 
     dest_path = os.path.join(dest_folder, os.path.basename(file_path))
     if not os.path.exists(dest_folder):
@@ -30,12 +28,12 @@ def copy_file(file_path: str, dest_folder: str):
     if os.path.exists(dest_path):
         print(f"File {file_path} already exists, skipping.")
         return
-    _copy_file(file_path, dest_path)
+    copyfile(file_path, dest_path)
 
 
 def move_file(file_path: str, dest_folder: str):
     import os
-    from distutils.file_util import move_file as _move_file
+    from shutil import move
 
     dest_path = os.path.join(dest_folder, os.path.basename(file_path))
     if not os.path.exists(dest_folder):
@@ -43,7 +41,7 @@ def move_file(file_path: str, dest_folder: str):
     if os.path.exists(dest_path):
         print(f"File {file_path} already exists, skipping.")
         return
-    _move_file(file_path, dest_path)
+    move(file_path, dest_path)
 
 
 def is_image_file(file_path: str) -> bool:
@@ -59,6 +57,8 @@ def is_image_file(file_path: str) -> bool:
 
 def list_all_files(folder: str) -> list[str]:
     """List all files in the given directory."""
+    import os
+
     # List all files in the directory using os.scandir
     with os.scandir(folder) as entries:
         return [entry.path for entry in entries if entry.is_file()]
@@ -68,6 +68,8 @@ def get_image_files(img_folder: str) -> list[str]:
     """List all image files in the given directory."""
 
     print("Listing all files...")
+    from multiprocessing import Pool, cpu_count
+
     all_files = list_all_files(img_folder)
 
     # Create a multiprocessing pool
