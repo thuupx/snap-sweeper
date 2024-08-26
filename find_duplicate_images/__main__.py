@@ -46,8 +46,8 @@ def parse_args():
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=128,
-        help="Batch size to use when encoding images. Default is 128.",
+        default=32,
+        help="Batch size to use when encoding images. Default is 32.",
     )
     parser.add_argument(
         "--top-k",

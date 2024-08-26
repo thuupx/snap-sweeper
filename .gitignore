@@ -8,4 +8,4 @@ dist
 DS_Store
 .DS_Store
 *.egg-info
-imgs_embeddings.pkl
+imgs_embedding.pkl

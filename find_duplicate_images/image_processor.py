@@ -1,10 +1,8 @@
 import asyncio
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-import torch
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 
@@ -18,28 +16,22 @@ class ImageProcessor:
         self.loop = asyncio.get_event_loop()
 
     @staticmethod
-    def load_image(filepath):
-        return Image.open(filepath)
+    async def load_image(filepath: str):
+        image = Image.open(filepath)
+        return image
 
-    async def async_load_images(self, batch_paths):
-        loop = asyncio.get_event_loop()
-        with ThreadPoolExecutor() as executor:
-            images = await asyncio.gather(
-                *[
-                    loop.run_in_executor(executor, self.load_image, path)
-                    for path in batch_paths
-                ]
-            )
+    async def async_load_images(self, batch_paths: list[str]):
+        images = await asyncio.gather(*[self.load_image(path) for path in batch_paths])
         return images
 
-    async def encode_images(self, image_paths, model=None, batch_size=128):
+    async def encode_images(self, image_paths, model=None, batch_size=32):
         """
         Encodes a list of images using the given model and returns the embeddings as a numpy array.
 
         Parameters:
             image_paths (list[str]): A list of image file paths to encode.
             model (SentenceTransformer): The model to use for encoding. If not provided, the default model will be used.
-            batch_size (int): The batch size to use for encoding. Default is 128.
+            batch_size (int): The batch size to use for encoding. Default is 32.
 
         Returns:
             np.ndarray: The encoded image embeddings as a numpy array.
@@ -47,24 +39,27 @@ class ImageProcessor:
         if model is None:
             model = self.default_model
 
-        all_embeddings = []
+        all_images: list[Image.Image] = []
 
         for start_idx in range(0, len(image_paths), batch_size):
             batch_paths = image_paths[start_idx : start_idx + batch_size]
             images = await self.async_load_images(batch_paths)
+            all_images.extend(images)
 
-            embeddings = model.encode(images, show_progress_bar=True)
-            all_embeddings.append(embeddings)
+        embeddings = model.encode(
+            all_images,
+            show_progress_bar=True,
+        )
 
-        return np.concatenate(all_embeddings, axis=0)
+        return embeddings
 
-    async def load_embeddings(self, img_folder, batch_size=128):
+    async def load_embeddings(self, img_folder, batch_size=32):
         """
         Loads the embeddings from the given file or computes them if they don't exist. The embeddings are saved to the given file.
 
         Parameters:
             img_folder (str): The folder containing the images to load embeddings for.
-            batch_size (int): The batch size to use for encoding. Default is 128.
+            batch_size (int): The batch size to use for encoding. Default is 32.
 
         Returns:
             tuple: A tuple containing the image embeddings as a numpy array and a list of image names.
