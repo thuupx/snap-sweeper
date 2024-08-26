@@ -21,7 +21,15 @@ class ImageProcessor:
 
     def encode_images(self, image_paths, model=None, batch_size=128):
         """
-        Encodes a list of images using the given model.
+        Encodes a list of images using the given model and returns the embeddings as a numpy array.
+
+        Parameters:
+            image_paths (list[str]): A list of image file paths to encode.
+            model (SentenceTransformer): The model to use for encoding. If not provided, the default model will be used.
+            batch_size (int): The batch size to use for encoding. Default is 128.
+
+        Returns:
+            np.ndarray: The encoded image embeddings as a numpy array.
         """
         if model is None:
             model = self.default_model
@@ -43,7 +51,14 @@ class ImageProcessor:
 
     def load_embeddings(self, img_folder, batch_size=128):
         """
-        Loads the embeddings from the given file or computes them if they don't exist.
+        Loads the embeddings from the given file or computes them if they don't exist. The embeddings are saved to the given file.
+
+        Parameters:
+            img_folder (str): The folder containing the images to load embeddings for.
+            batch_size (int): The batch size to use for encoding. Default is 128.
+
+        Returns:
+            tuple: A tuple containing the image embeddings as a numpy array and a list of image names.
         """
         img_names = get_image_files(img_folder)
 
@@ -100,6 +115,18 @@ class ImageProcessor:
 
     @staticmethod
     def search(img_embedding, threshold=0.9, top_k=10, limit=None):
+        """
+        Search for near duplicates using the given image embeddings.
+
+        Parameters:
+            img_embedding (np.ndarray): The image embeddings to search for near duplicates.
+            threshold (float): The similarity threshold for considering two images as near duplicates.
+            top_k (int): The number of near duplicates to find.
+            limit (int): The maximum number of near duplicates to find.
+
+        Returns:
+            list: A list of tuples containing the similarity score, the indices of the two images, and the indices of the two images.
+        """
         MAX_THRESHOLD = 1
 
         duplicates = util.paraphrase_mining_embeddings(img_embedding, top_k=top_k)
@@ -115,11 +142,20 @@ class ImageProcessor:
         return near_duplicates
 
     @staticmethod
-    def generate_image_pairs(near_duplicates, all_img_names):
+    def generate_image_pairs(
+        near_duplicates: list[tuple[float, int, int]], all_img_names: list[str]
+    ):
         """
         Generate image pairs from the near duplicates list.
 
         Ignores images that are not in the image folder.
+
+        Parameters:
+            near_duplicates (list): A list of tuples containing the similarity score, the indices of the two images, and the indices of the two images.
+            all_img_names (list[str]): A list of all image names.
+
+        Returns:
+            list: A list of tuples containing the image names, the indices of the two images, and the similarity score.
         """
         # Collect a set of all image names that need to be checked
         required_files = {

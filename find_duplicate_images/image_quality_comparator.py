@@ -33,9 +33,15 @@ class ImageQualityComparator:
         self, img1_path: str, img2_path: str, similarity: float
     ):
         """
-        Compares scores of two images.
+        Compares the quality of two images and returns a tuple containing the best and worst image paths, their scores, and the similarity score.
 
-        Return tuple of (best_image_path, worst_image_path, best_score, worst_score, similarity)
+        Parameters:
+            img1_path (str): The path to the first image.
+            img2_path (str): The path to the second image.
+            similarity (float): The similarity score between the two images.
+
+        Returns:
+            tuple: A tuple containing the best and worst image paths, their scores, and the similarity score.
         """
         loop = asyncio.get_event_loop()
         score1_task = loop.run_in_executor(None, self.compute_quality_score, img1_path)
@@ -51,6 +57,15 @@ class ImageQualityComparator:
     async def process_image_pairs(
         self, img_pairs: list[tuple[str, str, float]]
     ) -> list[tuple[str, str, float, float, float]]:
+        """
+        Compares the quality of two images and returns a list of tuples containing the best and worst image paths, their scores, and the similarity score.
+
+        Parameters:
+            img_pairs (list): A list of tuples containing the image names, the indices of the two images, and the similarity score.
+
+        Returns:
+            list: A list of tuples containing the best and worst image paths, their scores, and the similarity score.
+        """
         results = []
         BATCH_SIZE = 5
         CHUNK_SIZE = len(img_pairs) // BATCH_SIZE

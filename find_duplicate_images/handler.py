@@ -8,7 +8,20 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 async def find_and_move_duplicates_handler(
     img_folder, limit=0, batch_size=128, top_k=2, threshold=0.9, dry_run=False
 ) -> tuple[list[tuple[str, str, float, float, float]], str]:
+    """
+    Find and move duplicate images based on their similarity.
 
+    Parameters:
+        img_folder (str): The folder containing the images to process.
+        limit (int): The maximum number of near duplicates to find. Default is 0.
+        batch_size (int): The batch size to use for encoding images. Default is 128.
+        top_k (int): The number of near duplicates to find. Default is 2.
+        threshold (float): The similarity threshold for considering two images as near duplicates. Default is 0.9.
+        dry_run (bool): Whether to run the process in dry run mode. Default is False.
+
+    Returns:
+        tuple: A tuple containing a list of tuples containing the best and worst image paths, their scores, and the similarity score, and a string containing the error message if any.
+    """
     print(f"Loading images from {img_folder}")
 
     image_processor = ImageProcessor(embedding_file=IMAGE_EMBEDDING_FILE)
