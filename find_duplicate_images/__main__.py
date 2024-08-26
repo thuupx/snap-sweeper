@@ -10,6 +10,9 @@ async def main(args):
     dry_run = args.dry_run
     from find_duplicate_images.handler import find_and_move_duplicates_handler
 
+    if dry_run:
+        print("Dry run mode enabled. No images will be moved.")
+
     await find_and_move_duplicates_handler(
         img_folder,
         limit=limit,
@@ -37,7 +40,7 @@ def parse_args():
     parser.add_argument(
         "--limit",
         type=int,
-        default=0,
+        default=None,
         help="Limit the number of near duplicates to process. Default is no limit.",
     )
     parser.add_argument(
