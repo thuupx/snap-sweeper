@@ -1,9 +1,8 @@
-IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
-
-
 from find_duplicate_images.image_processor import ImageProcessor
 from find_duplicate_images.image_quality_comparator import ImageQualityComparator
 from find_duplicate_images.utils import chunkify, move_files_to_subdir
+
+IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 
 async def find_and_move_duplicates_handler(
