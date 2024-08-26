@@ -7,10 +7,16 @@ async def main(args):
     batch_size = args.batch_size
     top_k = args.top_k
     threshold = args.threshold
+    dry_run = args.dry_run
     from find_duplicate_images.handler import find_and_move_duplicates_handler
 
     await find_and_move_duplicates_handler(
-        img_folder, limit=limit, batch_size=batch_size, top_k=top_k, threshold=threshold
+        img_folder,
+        limit=limit,
+        batch_size=batch_size,
+        top_k=top_k,
+        threshold=threshold,
+        dry_run=dry_run,
     )
     print(f"Total time: {(time.time() - start_time):.2f} seconds")
 
@@ -51,6 +57,11 @@ def parse_args():
         type=float,
         default=0.9,
         help="Threshold for similarity score. Default is 0.9.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Dry run mode. Only prints the results without moving the images.",
     )
 
     return parser.parse_args()
