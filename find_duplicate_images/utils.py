@@ -1,4 +1,7 @@
+import asyncio
+import os
 from functools import lru_cache
+from shutil import copyfile, move
 
 
 def chunkify(lst, chunk_size=20):
@@ -19,8 +22,6 @@ def memorize_imread(filepath, flags=None):
 
 
 def copy_file(file_path: str, dest_folder: str):
-    import os
-    from shutil import copyfile
 
     dest_path = os.path.join(dest_folder, os.path.basename(file_path))
     if not os.path.exists(dest_folder):
@@ -32,8 +33,6 @@ def copy_file(file_path: str, dest_folder: str):
 
 
 def move_file(file_path: str, dest_folder: str):
-    import os
-    from shutil import move
 
     dest_path = os.path.join(dest_folder, os.path.basename(file_path))
     if not os.path.exists(dest_folder):
@@ -83,3 +82,37 @@ def get_image_files(img_folder: str) -> list[str]:
     valid_img_files.sort()
 
     return valid_img_files
+
+
+async def async_move_file_to_subdir(src: str, dest_subfolder: str):
+    """
+    Move a file to a specified subfolder inside its directory.
+
+    Parameters:
+        src (str): The source file path.
+        dest_subfolder (str): The subfolder name within the source file's directory.
+    """
+    # Determine the base directory and destination path
+    base_dir = os.path.dirname(src)
+    dest_dir = os.path.join(base_dir, dest_subfolder)
+    dest_path = os.path.join(dest_dir, os.path.basename(src))
+
+    # Ensure the destination directory exists
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    # Use asyncio to move the file
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, move, src, dest_path)
+
+
+async def move_files_to_subdir(files: list[str], dest_subfolder: str):
+    """
+    Move multiple files to a specified subfolder inside their directories.
+
+    Parameters:
+        files (list[str]): List of source file paths.
+        dest_subfolder (str): The subfolder name within each source file's directory.
+    """
+    tasks = [async_move_file_to_subdir(file, dest_subfolder) for file in files]
+    await asyncio.gather(*tasks)

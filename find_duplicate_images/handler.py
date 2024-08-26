@@ -3,8 +3,7 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 from find_duplicate_images.image_processor import ImageProcessor
 from find_duplicate_images.image_quality_comparator import ImageQualityComparator
-from find_duplicate_images.process_worst_image import process_worst_image
-from find_duplicate_images.utils import chunkify
+from find_duplicate_images.utils import chunkify, move_files_to_subdir
 
 
 async def find_and_move_duplicates_handler(
@@ -55,8 +54,8 @@ async def find_and_move_duplicates_handler(
                 print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
     else:
         print(f"Discarded images: {len(discarded_images)}")
-        for img in discarded_images:
-            process_worst_image(img)
+        DISCARDED_DIR = "DISCARDED"
+        await move_files_to_subdir(discarded_images, DISCARDED_DIR)
 
     print("Completed!")
     return results, "Completed!"
