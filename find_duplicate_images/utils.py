@@ -2,6 +2,7 @@ import asyncio
 import os
 from functools import lru_cache
 from shutil import copyfile, move
+from filetype import is_image
 
 
 def chunkify(lst, chunk_size=20):
@@ -43,37 +44,34 @@ def move_file(file_path: str, dest_folder: str):
     move(file_path, dest_path)
 
 
-def is_image_file(file_path: str) -> bool:
-    """Check if the given file is an image file."""
+async def is_image_file(file_path: str) -> bool:
     try:
-        # Attempt to read the image file using OpenCV
-        img = memorize_imread(file_path)
-        # Check if the result is None (i.e., cv2 couldn't read the file as an image)
-        return img is not None
+        loop = asyncio.get_event_loop()
+        is_image_obj = await loop.run_in_executor(None, is_image, file_path)
+        return is_image_obj
     except Exception:
         return False
 
 
-def list_all_files(folder: str) -> list[str]:
-    """List all files in the given directory."""
-    import os
+def list_all_files(directory: str) -> list[str]:
+    """Recursively list all files in the given directory."""
+    file_list = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_list.append(os.path.join(root, file))
+    return file_list
 
-    # List all files in the directory using os.scandir
-    with os.scandir(folder) as entries:
-        return [entry.path for entry in entries if entry.is_file()]
 
-
-def get_image_files(img_folder: str) -> list[str]:
-    """List all image files in the given directory."""
+async def get_image_files(img_folder: str) -> list[str]:
+    """Asynchronously list all image files in the given directory."""
 
     print("Listing all files...")
-    from multiprocessing import Pool, cpu_count
+    loop = asyncio.get_event_loop()
+    all_files = await loop.run_in_executor(None, list_all_files, img_folder)
 
-    all_files = list_all_files(img_folder)
-
-    # Create a multiprocessing pool
-    with Pool(cpu_count()) as pool:
-        img_validity = pool.map(is_image_file, all_files)
+    # Create tasks for checking each file asynchronously
+    tasks = [is_image_file(file) for file in all_files]
+    img_validity = await asyncio.gather(*tasks)
 
     # Filter and collect valid image files
     valid_img_files = [file for file, valid in zip(all_files, img_validity) if valid]

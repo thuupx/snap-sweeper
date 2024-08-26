@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -14,12 +15,24 @@ class ImageProcessor:
     def __init__(self, embedding_file: str):
         self.embedding_file = embedding_file
         self.default_model = SentenceTransformer("clip-ViT-B-32")
+        self.loop = asyncio.get_event_loop()
 
     @staticmethod
     def load_image(filepath):
         return Image.open(filepath)
 
-    def encode_images(self, image_paths, model=None, batch_size=128):
+    async def async_load_images(self, batch_paths):
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            images = await asyncio.gather(
+                *[
+                    loop.run_in_executor(executor, self.load_image, path)
+                    for path in batch_paths
+                ]
+            )
+        return images
+
+    async def encode_images(self, image_paths, model=None, batch_size=128):
         """
         Encodes a list of images using the given model and returns the embeddings as a numpy array.
 
@@ -35,21 +48,17 @@ class ImageProcessor:
             model = self.default_model
 
         all_embeddings = []
-        # Use ThreadPoolExecutor for concurrent image loading
-        with ThreadPoolExecutor() as executor:
-            for start_idx in range(0, len(image_paths), batch_size):
-                batch_paths = image_paths[start_idx : start_idx + batch_size]
-                images = list(executor.map(self.load_image, batch_paths))
-                embeddings = model.encode(
-                    images,
-                    batch_size=batch_size,
-                    convert_to_tensor=True,
-                    show_progress_bar=True,
-                )
-                all_embeddings.append(embeddings)
-        return torch.cat(all_embeddings, dim=0)
 
-    def load_embeddings(self, img_folder, batch_size=128):
+        for start_idx in range(0, len(image_paths), batch_size):
+            batch_paths = image_paths[start_idx : start_idx + batch_size]
+            images = await self.async_load_images(batch_paths)
+
+            embeddings = model.encode(images, show_progress_bar=True)
+            all_embeddings.append(embeddings)
+
+        return np.concatenate(all_embeddings, axis=0)
+
+    async def load_embeddings(self, img_folder, batch_size=128):
         """
         Loads the embeddings from the given file or computes them if they don't exist. The embeddings are saved to the given file.
 
@@ -60,7 +69,7 @@ class ImageProcessor:
         Returns:
             tuple: A tuple containing the image embeddings as a numpy array and a list of image names.
         """
-        img_names = get_image_files(img_folder)
+        img_names = await get_image_files(img_folder)
 
         img_embedding = None
         existing_img_names = []
@@ -88,19 +97,21 @@ class ImageProcessor:
             return img_embedding, existing_img_names
         else:
             start_time = time.time()
-            new_img_embeddings = self.encode_images(
+            # Use asyncio to run the encode_images function
+            new_img_embeddings = await self.encode_images(
                 new_img_names, batch_size=batch_size
             )
+
             print(f"Encoding images took {(time.time() - start_time):.2f} seconds")
 
-            # Convert new embeddings to CPU and combine with existing embeddings
+            # Combine with existing embeddings
             if img_embedding is not None:
                 img_embedding = np.concatenate(
-                    (img_embedding, new_img_embeddings.cpu().numpy()), axis=0
+                    (img_embedding, new_img_embeddings), axis=0
                 )
                 img_names = existing_img_names + new_img_names
             else:
-                img_embedding = new_img_embeddings.cpu().numpy()
+                img_embedding = new_img_embeddings
                 img_names = new_img_names
 
             # Save the combined embeddings and image names

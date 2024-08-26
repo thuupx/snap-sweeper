@@ -28,7 +28,7 @@ async def find_and_move_duplicates_handler(
     image_quality_comparator = ImageQualityComparator()
 
     print("Loading embeddings...")
-    img_embedding, img_names_db = image_processor.load_embeddings(
+    img_embedding, img_names_db = await image_processor.load_embeddings(
         img_folder, batch_size=batch_size
     )
     if img_embedding is None:
@@ -56,6 +56,7 @@ async def find_and_move_duplicates_handler(
     print(f"Results: {len(results)}")
 
     discarded_images = set(map(lambda x: x[1], results))
+    print(f"Discarded images: {len(discarded_images)}")
 
     if dry_run:
         results = list(chunkify(results, chunk_size=10))
@@ -65,7 +66,6 @@ async def find_and_move_duplicates_handler(
                 print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
                 print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
     else:
-        print(f"Discarded images: {len(discarded_images)}")
         DISCARDED_DIR = "DISCARDED"
         await move_files_to_subdir(discarded_images, DISCARDED_DIR)
 
