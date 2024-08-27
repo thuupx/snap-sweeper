@@ -6,19 +6,21 @@ class SelectFolderWidget(ctk.CTkFrame):
     def __init__(self, *args, text_variable=None, on_text_click=None, **kwargs):
         super().__init__(*args, corner_radius=15, **kwargs)
         self.on_text_click = on_text_click
+        self.text_variable = text_variable
+        self.setup_ui()
+        if self.on_text_click:
+            self.text_label.bind("<Button-1>", self._on_text_click)
 
+    def setup_ui(self) -> None:
         self.columnconfigure(0, weight=1)
 
         self.text_label = ctk.CTkLabel(
             master=self,
             width=200,
             height=64,
-            text=text_variable,
+            text=self.text_variable,
         )
         self.text_label.grid(row=0, column=0, padx=(5, 10), pady=5, sticky="ew")
-
-        if self.on_text_click:
-            self.text_label.bind("<Button-1>", self._on_text_click)
 
     def _on_text_click(self, event):
         self.on_text_click()

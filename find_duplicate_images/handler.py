@@ -6,14 +6,14 @@ IMAGE_EMBEDDING_FILE = "imgs_embedding.pkl"
 
 
 async def find_and_move_duplicates_handler(
-    img_folder, limit=0, batch_size=32, top_k=2, threshold=0.9, dry_run=False
+    img_folder, limit=None, batch_size=32, top_k=2, threshold=0.9, dry_run=False
 ) -> tuple[list[tuple[str, str, float, float, float]], str]:
     """
     Find and move duplicate images based on their similarity.
 
     Parameters:
         img_folder (str): The folder containing the images to process.
-        limit (int): The maximum number of near duplicates to find. Default is 0.
+        limit (int): The maximum number of near duplicates to find. Default is None.
         batch_size (int): The batch size to use for encoding images. Default is 32.
         top_k (int): The number of near duplicates to find. Default is 2.
         threshold (float): The similarity threshold for considering two images as near duplicates. Default is 0.9.
@@ -52,6 +52,7 @@ async def find_and_move_duplicates_handler(
     print("Analyzing pairs...")
     results = await image_quality_comparator.process_image_pairs(img_pairs)
     results = sorted(results, key=lambda x: x[4], reverse=True)
+    returned_results = results
 
     print(f"Results: {len(results)}")
 
@@ -60,14 +61,14 @@ async def find_and_move_duplicates_handler(
 
     if dry_run:
         results = list(chunkify(results, chunk_size=10))
-        for chunk in results:
-            for best_img, worst_img, best_score, worst_score, similarity in chunk:
-                print(f"\n\nSimilarity Score: {similarity:.3f}")
-                print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
-                print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
+        # for chunk in results:
+        #     for best_img, worst_img, best_score, worst_score, similarity in chunk:
+        #         print(f"\n\nSimilarity Score: {similarity:.3f}")
+        #         print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
+        #         print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
     else:
         DISCARDED_DIR = "DISCARDED"
         await move_files_to_subdir(discarded_images, DISCARDED_DIR)
 
     print("Completed!")
-    return results, "Completed!"
+    return returned_results, None
