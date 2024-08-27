@@ -1,8 +1,26 @@
-from tkinter import Tk
-from ui.duplicate_image_finder_app import DuplicateImageFinderApp
+import os
+
+
+def main():
+    from ui.duplicate_image_finder_app import DuplicateImageFinderApp
+    import customtkinter as ctk
+    import os
+
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme(
+        os.path.join(os.path.dirname(__file__), "themes", "sky.json")
+    )
+
+    root = ctk.CTk()
+    app = DuplicateImageFinderApp(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
-    root = Tk()
-    app = DuplicateImageFinderApp(root)
-    root.mainloop()
+    app_env = os.getenv("APP_ENV", "development")
+    print("Running in", app_env, "mode")
+    if app_env != "production":
+        from hupper import start_reloader
+
+        reloader = start_reloader("ui.__main__.main")
+    main()
