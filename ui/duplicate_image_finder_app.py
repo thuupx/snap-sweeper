@@ -1,11 +1,14 @@
 import asyncio
 import threading
 from tkinter import filedialog, messagebox, StringVar
+import tkinter
+import tkinter.dnd
 from typing import Optional
 
 import customtkinter as ctk
 
 from find_duplicate_images.handler import find_and_move_duplicates_handler
+from ui.widgets.select_folder import SelectFolderWidget
 
 
 class DuplicateImageFinderApp:
@@ -24,31 +27,39 @@ class DuplicateImageFinderApp:
 
     def setup_ui(self) -> None:
         self.root.title("Find Duplicate Images")
-        self.root.geometry("800x600")
+        self.root.geometry("1024x768")
 
-        top_frame: ctk.CTkFrame = ctk.CTkFrame(master=self.root)
-        top_frame.pack(pady=20)
+        # Configure the grid system
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=3)
+        self.root.grid_columnconfigure(1, weight=1)
 
-        bottom_frame: ctk.CTkFrame = ctk.CTkFrame(master=self.root)
-        bottom_frame.pack(side=ctk.BOTTOM, pady=20)
+        # Create left frame
+        left_frame = ctk.CTkFrame(master=self.root, corner_radius=10)
+        left_frame.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="nsew")
 
-        btn_select_dir: ctk.CTkButton = ctk.CTkButton(
-            master=top_frame,
-            text="Select Folder",
-            command=self.on_btn_select_dir_clicked,
+        # Create right frame
+        right_frame = ctk.CTkFrame(master=self.root, corner_radius=10)
+        right_frame.grid(row=0, column=1, padx=(5, 10), pady=10, sticky="nsew")
+
+        self.setting_widget = SelectFolderWidget(
+            master=right_frame,
+            text_variable=self.image_dir.get() or "Select Folder",
+            on_text_click=self.on_btn_select_dir_clicked,
+            cursor="pointinghand",
         )
-        btn_select_dir.pack()
+        self.setting_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
 
         self.btn_scan = ctk.CTkButton(
-            master=bottom_frame,
+            master=right_frame,
             text="Scan",
             command=self.on_btn_process_clicked,
         )
-        self.btn_scan.pack()
+        self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)
         self.btn_scan.configure(state=ctk.DISABLED)
 
         self.progress_bar = ctk.CTkProgressBar(
-            master=self.root,
+            master=left_frame,
             orientation="horizontal",
             mode="indeterminate",
         )
@@ -61,6 +72,8 @@ class DuplicateImageFinderApp:
             self.image_dir.set(directory)
 
     def on_image_dir_changed(self, *args) -> None:
+        if self.setting_widget:
+            self.setting_widget.set_text(self.image_dir.get())
         if self.image_dir.get():
             self.btn_scan.configure(state=ctk.NORMAL)
         else:
@@ -73,7 +86,7 @@ class DuplicateImageFinderApp:
 
     async def process_images(self) -> None:
         self.btn_scan.configure(state=ctk.DISABLED)
-        self.progress_bar.pack(pady=12, padx=10)
+        self.progress_bar.pack(side=tkinter.BOTTOM, fill="x", padx=8, pady=8)
         self.progress_bar.start()
 
         try:

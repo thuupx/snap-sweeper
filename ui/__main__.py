@@ -6,7 +6,7 @@ def main():
     import customtkinter as ctk
     import os
 
-    ctk.set_appearance_mode("System")
+    ctk.set_appearance_mode("system")
     ctk.set_default_color_theme(
         os.path.join(os.path.dirname(__file__), "themes", "sky.json")
     )
