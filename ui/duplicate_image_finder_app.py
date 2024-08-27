@@ -80,15 +80,14 @@ class DuplicateImageFinderApp:
             self.btn_scan.configure(state=ctk.DISABLED)
 
     def on_btn_process_clicked(self) -> None:
+        self.btn_scan.configure(state=ctk.DISABLED)
+        self.progress_bar.pack(side=tkinter.BOTTOM, fill="x", padx=8, pady=8)
+        self.progress_bar.start()
         if not self.loop.is_running():
             self.start_asyncio_event_loop()
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
 
     async def process_images(self) -> None:
-        self.btn_scan.configure(state=ctk.DISABLED)
-        self.progress_bar.pack(side=tkinter.BOTTOM, fill="x", padx=8, pady=8)
-        self.progress_bar.start()
-
         try:
             results, error = await find_and_move_duplicates_handler(
                 self.image_dir.get(), dry_run=True
