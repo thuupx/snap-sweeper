@@ -2,7 +2,7 @@ import os
 
 
 def main():
-    from ui.duplicate_image_finder_app import DuplicateImageFinderApp
+    from desktop_ui.duplicate_image_finder_app import DuplicateImageFinderApp
     import customtkinter as ctk
     import os
 
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     if app_env != "production":
         from hupper import start_reloader
 
-        reloader = start_reloader("ui.__main__.main")
+        reloader = start_reloader("desktop_ui.__main__.main")
     main()

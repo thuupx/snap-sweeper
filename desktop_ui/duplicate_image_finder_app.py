@@ -2,14 +2,14 @@ import asyncio
 import threading
 import tkinter
 import tkinter.dnd
-from tkinter import StringVar, Variable, filedialog, messagebox
+from tkinter import StringVar, filedialog, messagebox
 from typing import Optional
 
 import customtkinter as ctk
 
+from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
+from desktop_ui.widgets.select_folder import SelectFolderWidget
 from find_duplicate_images.handler import find_and_move_duplicates_handler
-from ui.widgets.duplicate_preview import DuplicatePreviewWidget
-from ui.widgets.select_folder import SelectFolderWidget
 
 
 class DuplicateImageFinderApp:
