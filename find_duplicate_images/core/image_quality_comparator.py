@@ -7,7 +7,7 @@ from brisque import BRISQUE as Btisque
 from numpy import asarray
 from tqdm.asyncio import tqdm
 
-from find_duplicate_images.utils import chunkify, memorize_imread
+from .utils import chunkify, memorize_imread
 
 
 class ImageQualityComparator:

@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
 
-from find_duplicate_images.utils import get_image_files
+from .utils import get_image_files
 
 
 class ImageProcessor:

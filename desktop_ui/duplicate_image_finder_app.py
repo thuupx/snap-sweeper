@@ -9,7 +9,7 @@ import customtkinter as ctk
 
 from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
 from desktop_ui.widgets.select_folder import SelectFolderWidget
-from find_duplicate_images.handler import find_and_move_duplicates_handler
+from find_duplicate_images.core.handler import find_and_move_duplicates_handler
 
 
 class DuplicateImageFinderApp:

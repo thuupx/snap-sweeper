@@ -8,7 +8,7 @@ async def main(args):
     top_k = args.top_k
     threshold = args.threshold
     dry_run = args.dry_run
-    from find_duplicate_images.handler import find_and_move_duplicates_handler
+    from find_duplicate_images.core.handler import find_and_move_duplicates_handler
 
     if dry_run:
         print("Dry run mode enabled. No images will be moved.")
