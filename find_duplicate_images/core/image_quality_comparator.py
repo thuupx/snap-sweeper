@@ -1,6 +1,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
+import os
 
 import cv2
 from brisque import BRISQUE as Btisque
@@ -11,9 +12,14 @@ from .utils import chunkify, memorize_imread
 
 
 class ImageQualityComparator:
-    def __init__(self):
+    def __init__(self, max_concurrency: int = None):
         self.lock = Lock()
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        max_concurrency = (
+            max_concurrency or os.cpu_count() * 2 if os.cpu_count() else 10
+        )
+        self.semaphore = asyncio.Semaphore(max_concurrency)
+        self.scoring_executor = ThreadPoolExecutor(max_workers=2)
+        self.quality_executor = ThreadPoolExecutor(max_workers=2)
 
     def get_np_array(self, img_path, pixel_x=64, pixel_y=64):
         img = memorize_imread(img_path)
@@ -25,7 +31,7 @@ class ImageQualityComparator:
     def compute_quality_score(self, img_path: str) -> float:
         np_array = self.get_np_array(img_path)
         with self.lock:
-            score = self.executor.submit(Btisque(url=False).score, img=np_array)
+            score = self.scoring_executor.submit(Btisque(url=False).score, img=np_array)
             score = score.result()
             return score
 
@@ -44,8 +50,13 @@ class ImageQualityComparator:
             tuple: A tuple containing the best and worst image paths, their scores, and the similarity score.
         """
         loop = asyncio.get_event_loop()
-        score1_task = loop.run_in_executor(None, self.compute_quality_score, img1_path)
-        score2_task = loop.run_in_executor(None, self.compute_quality_score, img2_path)
+
+        score1_task = loop.run_in_executor(
+            self.quality_executor, self.compute_quality_score, img1_path
+        )
+        score2_task = loop.run_in_executor(
+            self.quality_executor, self.compute_quality_score, img2_path
+        )
 
         q_score1, q_score2 = await asyncio.gather(score1_task, score2_task)
 
@@ -58,16 +69,15 @@ class ImageQualityComparator:
         self, img_pairs: list[tuple[float, str, str]]
     ) -> list[tuple[str, str, float, float, float]]:
         results = []
-        BATCH_SIZE = 5
-        CHUNK_SIZE = len(img_pairs) // BATCH_SIZE
+        CHUNK_SIZE = 10
 
         with tqdm(total=len(img_pairs), desc="Processing pairs") as progress_bar:
             for chunk in chunkify(img_pairs, chunk_size=CHUNK_SIZE):
                 tasks = [
-                    self.compare_image_quality(
-                        similarity,
-                        img1_path,
-                        img2_path,
+                    asyncio.create_task(
+                        self._limited_compare_image_quality(
+                            similarity, img1_path, img2_path
+                        )
                     )
                     for similarity, img1_path, img2_path in chunk
                 ]
@@ -76,3 +86,9 @@ class ImageQualityComparator:
                     results.append(result)
                     progress_bar.update(1)
         return results
+
+    async def _limited_compare_image_quality(
+        self, similarity: float, img1_path: str, img2_path: str
+    ):
+        async with self.semaphore:
+            return await self.compare_image_quality(similarity, img1_path, img2_path)
