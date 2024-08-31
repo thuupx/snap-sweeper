@@ -9,7 +9,9 @@ import customtkinter as ctk
 
 from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
 from desktop_ui.widgets.select_folder import SelectFolderWidget
-from find_duplicate_images.core.handler import find_and_move_duplicates_handler
+from find_duplicate_images.core.find_and_move_similar_images import (
+    find_and_move_similar_images,
+)
 
 
 class DuplicateImageFinderApp:
@@ -95,7 +97,7 @@ class DuplicateImageFinderApp:
 
     async def process_images(self) -> None:
         try:
-            results, error = await find_and_move_duplicates_handler(
+            results, error = await find_and_move_similar_images(
                 self.image_dir.get(), dry_run=True
             )
             if error:

@@ -1,22 +1,24 @@
+from find_duplicate_images.core.find_and_move_similar_images import (
+    find_and_move_similar_images,
+)
+
+
 async def main(args):
     import time
 
     start_time = time.time()
     img_folder = args.dir
     limit = args.limit
-    batch_size = args.batch_size
     top_k = args.top_k
     threshold = args.threshold
     dry_run = args.dry_run
-    from find_duplicate_images.core.handler import find_and_move_duplicates_handler
 
     if dry_run:
         print("Dry run mode enabled. No images will be moved.")
 
-    await find_and_move_duplicates_handler(
+    await find_and_move_similar_images(
         img_folder,
         limit=limit,
-        batch_size=batch_size,
         top_k=top_k,
         threshold=threshold,
         dry_run=dry_run,
@@ -42,12 +44,6 @@ def parse_args():
         type=int,
         default=None,
         help="Limit the number of near duplicates to process. Default is no limit.",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=32,
-        help="Batch size to use when encoding images. Default is 32.",
     )
     parser.add_argument(
         "--top-k",

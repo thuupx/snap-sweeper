@@ -30,15 +30,15 @@ class ImageQualityComparator:
             return score
 
     async def compare_image_quality(
-        self, img1_path: str, img2_path: str, similarity: float
+        self, similarity: float, img1_path: str, img2_path: str
     ):
         """
         Compares the quality of two images and returns a tuple containing the best and worst image paths, their scores, and the similarity score.
 
         Parameters:
+            similarity (float): The similarity score between the two images.
             img1_path (str): The path to the first image.
             img2_path (str): The path to the second image.
-            similarity (float): The similarity score between the two images.
 
         Returns:
             tuple: A tuple containing the best and worst image paths, their scores, and the similarity score.
@@ -54,18 +54,9 @@ class ImageQualityComparator:
         else:
             return (img2_path, img1_path, q_score2, q_score1, similarity)
 
-    async def process_image_pairs(
-        self, img_pairs: list[tuple[str, str, float]]
+    async def perform_image_quality_comparison(
+        self, img_pairs: list[tuple[float, str, str]]
     ) -> list[tuple[str, str, float, float, float]]:
-        """
-        Compares the quality of two images and returns a list of tuples containing the best and worst image paths, their scores, and the similarity score.
-
-        Parameters:
-            img_pairs (list): A list of tuples containing the image names, the indices of the two images, and the similarity score.
-
-        Returns:
-            list: A list of tuples containing the best and worst image paths, their scores, and the similarity score.
-        """
         results = []
         BATCH_SIZE = 5
         CHUNK_SIZE = len(img_pairs) // BATCH_SIZE
@@ -73,8 +64,12 @@ class ImageQualityComparator:
         with tqdm(total=len(img_pairs), desc="Processing pairs") as progress_bar:
             for chunk in chunkify(img_pairs, chunk_size=CHUNK_SIZE):
                 tasks = [
-                    self.compare_image_quality(img1_path, img2_path, similarity)
-                    for img1_path, img2_path, similarity in chunk
+                    self.compare_image_quality(
+                        similarity,
+                        img1_path,
+                        img2_path,
+                    )
+                    for similarity, img1_path, img2_path in chunk
                 ]
                 for future in asyncio.as_completed(tasks):
                     result = await future
