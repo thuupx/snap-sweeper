@@ -39,8 +39,8 @@ class DuplicateImageFinderApp:
         self.root.grid_columnconfigure(1, weight=1)
 
         # Create left frame
-        left_frame = ctk.CTkFrame(master=self.root, corner_radius=10)
-        left_frame.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="nsew")
+        left_frame = ctk.CTkFrame(master=self.root, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsew")
 
         # Create right frame
         right_frame = ctk.CTkFrame(master=self.root, corner_radius=10)
