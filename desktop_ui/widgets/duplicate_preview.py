@@ -4,6 +4,8 @@ import customtkinter as ctk
 import threading
 import queue
 
+CHUNK_SIZE = 10  # Number of images to load per chunk
+
 
 class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
     def __init__(self, master):
@@ -11,6 +13,8 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         self.master = master
         self.duplicates = []
         self.image_queue = queue.Queue()
+        self.current_chunk = 0
+        self.total_items = 0
         self.setup_ui()
         self.bind("<MouseWheel>", self.on_mouse_wheel)
 
@@ -21,18 +25,22 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
 
         self.configure(height=len(self.duplicates) * 64 + 100)
 
-        # Start a thread to load images
-        threading.Thread(target=self.load_images_in_thread, daemon=True).start()
+        # Reset chunk
+        self.current_chunk = 0
+        self.total_items = len(self.duplicates)
 
-        # Poll the queue to add loaded images to the UI
-        self.after(100, self.process_image_queue)
+        # Load initial chunk of images
+        self.load_next_chunk()
 
     def on_mouse_wheel(self, event: tkinter.Event):
         self._parent_canvas.yview_scroll(-1 * event.delta, "units")
 
-    def load_images_in_thread(self):
-        for i, duplicate in enumerate(self.duplicates):
+    def load_images_in_thread(self, start_index):
+        end_index = min(start_index + CHUNK_SIZE, self.total_items)
+        for i in range(start_index, end_index):
+            duplicate = self.duplicates[i]
             self.add_duplicate_lazy(duplicate, i)
+        self.image_queue.put("done")
 
     def add_duplicate_lazy(self, duplicate: tuple[str, str, float, float, float], i):
         best_image = Image.open(duplicate[0])
@@ -53,7 +61,12 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
     def process_image_queue(self):
         try:
             while not self.image_queue.empty():
-                i, image_left, image_right = self.image_queue.get_nowait()
+                item = self.image_queue.get_nowait()
+                if item == "done":
+                    self.add_load_more_button()
+                    continue
+
+                i, image_left, image_right = item
 
                 left_label = ctk.CTkLabel(master=self, image=image_left, text=None)
                 left_label.grid(row=i, column=0, padx=5, pady=5, sticky="ew")
@@ -69,3 +82,26 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
     def set_duplicates(self, duplicates: list[tuple[str, str, float, float, float]]):
         self.duplicates = duplicates
         self.setup_ui()
+
+    def load_next_chunk(self):
+        start_index = self.current_chunk * CHUNK_SIZE
+        threading.Thread(
+            target=self.load_images_in_thread, args=(start_index,), daemon=True
+        ).start()
+        self.current_chunk += 1
+        self.after(100, self.process_image_queue)
+
+    def add_load_more_button(self):
+        if self.current_chunk * CHUNK_SIZE >= self.total_items:
+            return
+
+        load_more_button = ctk.CTkButton(
+            master=self, text="Load More", command=self.load_next_chunk
+        )
+        load_more_button.grid(
+            row=self.current_chunk * CHUNK_SIZE,
+            columnspan=2,
+            padx=5,
+            pady=5,
+            sticky="ew",
+        )
