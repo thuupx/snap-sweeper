@@ -56,7 +56,7 @@ async def is_image_file(file_path: str) -> bool:
 def list_all_files(directory: str) -> list[str]:
     """Recursively list all files in the given directory."""
     file_list = []
-    for root, dirs, files in os.walk(directory):
+    for root, _dirs, files in os.walk(directory):
         for file in files:
             file_list.append(os.path.join(root, file))
     return file_list

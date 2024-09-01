@@ -3,12 +3,12 @@ import threading
 import tkinter
 import tkinter.dnd
 from tkinter import StringVar, filedialog, messagebox
-from typing import Optional
+from typing import Optional, Dict, Any, Tuple, List
 
 import customtkinter as ctk
 
 from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
-from desktop_ui.widgets.ouput import OutputWidget
+from desktop_ui.widgets.output import OutputWidget
 from desktop_ui.widgets.select_folder import SelectFolderWidget
 from desktop_ui.widgets.settings import SettingsWidget
 from find_duplicate_images.core.find_and_move_similar_images import (
@@ -25,6 +25,11 @@ class DuplicateImageFinderApp:
 
         self.btn_scan: Optional[ctk.CTkButton] = None
         self.progress_bar: Optional[ctk.CTkProgressBar] = None
+
+        self.select_folder_widget: Optional[SelectFolderWidget] = None
+        self.settings_widget: Optional[SettingsWidget] = None
+        self.output_widget: Optional[OutputWidget] = None
+        self.preview_widget: Optional[DuplicatePreviewWidget] = None
 
         self.setup_ui()
         self.start_asyncio_event_loop()
@@ -87,7 +92,7 @@ class DuplicateImageFinderApp:
         if directory:
             self.image_dir.set(directory)
 
-    def on_image_dir_changed(self, *args) -> None:
+    def on_image_dir_changed(self, *args: Any) -> None:
         if self.select_folder_widget:
             self.select_folder_widget.set_text(self.image_dir.get())
         if self.image_dir.get():
@@ -110,17 +115,19 @@ class DuplicateImageFinderApp:
             results, error = await find_and_move_similar_images(
                 self.image_dir.get(),
                 dry_run=True,
-                top_k=settings["top_k"],
-                threshold=settings["threshold"] / 100,
-                sub_folder_name=settings["sub_folder_name"],
+                top_k=int(settings["top_k"]),
+                threshold=int(settings["threshold"]) / 100,
+                sub_folder_name=str(settings["sub_folder_name"]),
             )
             if error:
                 messagebox.showerror("Error", error)
-            else:
+            elif results:
                 self.preview_widget.set_duplicates(results)
                 self.preview_widget.pack(
                     side=tkinter.TOP, fill=tkinter.BOTH, padx=10, pady=10
                 )
+            else:
+                messagebox.showerror("Error", "Error: No results found.")
 
         except Exception as e:
             print(e)

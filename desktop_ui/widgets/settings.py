@@ -3,7 +3,7 @@ import customtkinter as ctk
 
 
 class SettingsWidget(ctk.CTkFrame):
-    def __init__(self, *args, master: ctk.CTk, **kwargs):
+    def __init__(self, *args, master: ctk.CTkFrame, **kwargs):
         super().__init__(*args, master=master, corner_radius=10, **kwargs)
         self.master = master
         self.threshold = IntVar(value=90)
@@ -59,7 +59,7 @@ class SettingsWidget(ctk.CTkFrame):
         # checkbox to dertermine if we want to move the images or not
         self.move_images_checkbox = ctk.CTkCheckBox(
             master=self,
-            text=None,
+            text="",
             variable=self.move_images,
             onvalue=True,
             offvalue=False,
@@ -82,10 +82,10 @@ class SettingsWidget(ctk.CTkFrame):
         )
         self.sub_folder_name_input.grid(row=3, column=2, padx=5, pady=5, sticky="w")
 
-    def on_threshold_changed(self):
+    def on_threshold_changed(self, *args) -> None:
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
 
-    def get_settings(self) :
+    def get_settings(self):
         return {
             "threshold": self.threshold.get(),
             "top_k": self.top_k.get(),

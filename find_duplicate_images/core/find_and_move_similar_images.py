@@ -68,7 +68,7 @@ async def find_and_move_similar_images(
                 print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
                 print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
     else:
-        await move_files_to_subdir(discarded_images, sub_folder_name)
+        await move_files_to_subdir(list(discarded_images), sub_folder_name)
 
     print("Completed!")
     return returned_results, None

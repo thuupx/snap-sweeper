@@ -12,7 +12,7 @@ def main():
     )
 
     root = ctk.CTk()
-    app = DuplicateImageFinderApp(root)
+    DuplicateImageFinderApp(root)
     root.mainloop()
 
 

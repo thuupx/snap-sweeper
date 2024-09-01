@@ -1,4 +1,5 @@
 import tkinter
+from typing import Any
 from PIL import Image
 import customtkinter as ctk
 import threading
@@ -32,7 +33,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         # Load initial chunk of images
         self.load_next_chunk()
 
-    def on_mouse_wheel(self, event: tkinter.Event):
+    def on_mouse_wheel(self, event: Any):
         self._parent_canvas.yview_scroll(-1 * event.delta, "units")
 
     def load_images_in_thread(self, start_index):
@@ -68,10 +69,10 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
 
                 i, image_left, image_right = item
 
-                left_label = ctk.CTkLabel(master=self, image=image_left, text=None)
+                left_label = ctk.CTkLabel(master=self, image=image_left, text="")
                 left_label.grid(row=i, column=0, padx=5, pady=5, sticky="ew")
 
-                right_label = ctk.CTkLabel(master=self, image=image_right, text=None)
+                right_label = ctk.CTkLabel(master=self, image=image_right, text="")
                 right_label.grid(row=i, column=1, padx=5, pady=5, sticky="ew")
         except queue.Empty:
             pass
