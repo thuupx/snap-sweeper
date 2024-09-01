@@ -36,8 +36,8 @@ class DuplicateImageFinderApp:
 
         # Configure the grid system
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=3)
-        self.root.grid_columnconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=0)
 
         # Create left frame
         left_frame = ctk.CTkFrame(master=self.root, fg_color="transparent")
