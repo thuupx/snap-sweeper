@@ -65,7 +65,7 @@ class SettingsWidget(ctk.CTkFrame):
             offvalue=False,
         )
         self.move_images_checkbox_label = ctk.CTkLabel(
-            master=self, text="Move images to folder:"
+            master=self, text="Move images to subfolder:"
         )
         self.move_images_checkbox_label.grid(
             row=2, column=1, padx=5, pady=5, sticky="w"
@@ -74,7 +74,7 @@ class SettingsWidget(ctk.CTkFrame):
 
         # sub folder name input and label
         self.sub_folder_name_label = ctk.CTkLabel(
-            master=self, text="Folder name to move images to:"
+            master=self, text="Subfolder name to move images to:"
         )
         self.sub_folder_name_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
         self.sub_folder_name_input = ctk.CTkEntry(

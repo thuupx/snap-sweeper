@@ -32,7 +32,7 @@ class DuplicateImageFinderApp:
 
     def setup_ui(self) -> None:
         self.root.title("Find Duplicate Images")
-        self.root.geometry("1024x768")
+        self.root.geometry("1600x1024")
 
         # Configure the grid system
         self.root.grid_rowconfigure(0, weight=1)
