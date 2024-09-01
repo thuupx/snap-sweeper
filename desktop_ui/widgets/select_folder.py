@@ -1,15 +1,15 @@
 import os
+from typing import Callable
 import customtkinter as ctk
 
 
 class SelectFolderWidget(ctk.CTkFrame):
-    def __init__(self, *args, text_variable=None, on_text_click=None, **kwargs):
+    def __init__(self, *args, text: str, on_text_click: Callable[[], None], **kwargs):
         super().__init__(*args, corner_radius=15, **kwargs)
         self.on_text_click = on_text_click
-        self.text_variable = text_variable
+        self.text = text
         self.setup_ui()
-        if self.on_text_click:
-            self.text_label.bind("<Button-1>", self._on_text_click)
+        self.text_label.bind("<Button-1>", self._on_text_click)
 
     def setup_ui(self) -> None:
         self.columnconfigure(0, weight=1)
@@ -18,7 +18,7 @@ class SelectFolderWidget(ctk.CTkFrame):
             master=self,
             width=200,
             height=64,
-            text=self.text_variable,
+            text=self.text,
         )
         self.text_label.grid(row=0, column=0, padx=(5, 10), pady=5, sticky="ew")
 

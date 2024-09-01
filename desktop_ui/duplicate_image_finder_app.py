@@ -50,7 +50,7 @@ class DuplicateImageFinderApp:
 
         self.select_folder_widget = SelectFolderWidget(
             master=right_frame,
-            text_variable=self.image_dir.get() or "Select Folder",
+            text=self.image_dir.get() or "Select Folder",
             on_text_click=self.on_btn_select_dir_clicked,
             cursor="pointinghand",
         )

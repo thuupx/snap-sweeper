@@ -1,15 +1,15 @@
-from tkinter import Variable
+from tkinter import BooleanVar, IntVar, StringVar, Variable
 import customtkinter as ctk
 
 
 class SettingsWidget(ctk.CTkFrame):
-    def __init__(self, *args, master, **kwargs):
+    def __init__(self, *args, master: ctk.CTk, **kwargs):
         super().__init__(*args, master=master, corner_radius=10, **kwargs)
         self.master = master
-        self.threshold = Variable(value=90)
-        self.top_k = Variable(value=2)
-        self.move_images = Variable(value=True)
-        self.sub_folder_name = Variable(value="DISCARDED")
+        self.threshold = IntVar(value=90)
+        self.top_k = IntVar(value=2)
+        self.move_images = BooleanVar(value=True)
+        self.sub_folder_name = StringVar(value="DISCARDED")
         self.setup_ui()
 
     def setup_ui(self):
@@ -82,10 +82,10 @@ class SettingsWidget(ctk.CTkFrame):
         )
         self.sub_folder_name_input.grid(row=3, column=2, padx=5, pady=5, sticky="w")
 
-    def on_threshold_changed(self, *args):
+    def on_threshold_changed(self):
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
 
-    def get_settings(self):
+    def get_settings(self) :
         return {
             "threshold": self.threshold.get(),
             "top_k": self.top_k.get(),

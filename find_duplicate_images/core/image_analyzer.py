@@ -1,10 +1,13 @@
 import asyncio
 import queue
 import time
-from typing import List, Union
+from typing import Any, List, Union
 
 import chromadb
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+from chromadb.api.types import IncludeEnum
+from chromadb.utils.embedding_functions.sentence_transformer_embedding_function import (
+    SentenceTransformerEmbeddingFunction,
+)
 from PIL import Image
 from sentence_transformers import util
 from tqdm.asyncio import tqdm
@@ -21,7 +24,7 @@ class ImageAnalyzer:
 
     def setup_database(self):
         self.client = chromadb.PersistentClient(path=DB_PATH)
-        embedding_function = SentenceTransformerEmbeddingFunction(
+        embedding_function: Any = SentenceTransformerEmbeddingFunction(
             model_name=MODEL_NAME, device=util.get_device_name()
         )
         self.collection = self.client.get_or_create_collection(
@@ -49,7 +52,7 @@ class ImageAnalyzer:
         Parameters:
             image_paths (list[str]): A list of image paths to add to the database.
         """
-        images = await ImageAnalyzer.async_load_images(image_paths)
+        images: List[Any] = await ImageAnalyzer.async_load_images(image_paths)
         self.collection.add(
             ids=image_paths,
             images=images,
@@ -78,7 +81,7 @@ class ImageAnalyzer:
     @staticmethod
     def paraphrase_mining_embeddings(
         embeddings: List[chromadb.Embeddings],
-        metadatas: chromadb.Metadata,
+        metadatas: List[chromadb.Metadata],
         top_k=100,
         max_pairs=500000,
         query_chunk_size=5000,
@@ -145,7 +148,7 @@ class ImageAnalyzer:
 
         # Get the pairs
         added_pairs = set()  # Used for duplicate detection
-        pairs_list = []
+        pairs_list: List[List[Union[float, str, str]]] = []
         while not pairs.empty():
             score, i, j = pairs.get()
             sorted_i, sorted_j = sorted([i, j])
@@ -161,7 +164,7 @@ class ImageAnalyzer:
         return pairs_list
 
     def similarity_search(
-        self, image_paths: list[str], top_k=10, limit: int = None, threshold=0.9
+        self, image_paths: list[str], top_k=10, limit: int | None = None, threshold=0.9
     ) -> list[List[float | str]]:
         """
         Search for near duplicates using the given image embeddings.
@@ -175,14 +178,17 @@ class ImageAnalyzer:
             list: A list of tuples containing the similarity score, the indices of the two images, and the indices of the two images.
         """
         all_docs = self.collection.get(
-            ids=image_paths, limit=limit, include=["embeddings", "metadatas"]
+            ids=image_paths,
+            limit=limit,
+            include=[IncludeEnum.embeddings, IncludeEnum.metadatas],
         )
-        embeddings = all_docs["embeddings"]
-        metadatas = all_docs["metadatas"]
+        embeddings: List[Any] = all_docs["embeddings"] or []
+        metadatas: List[Any] = all_docs["metadatas"] or []
+
         duplicates = ImageAnalyzer.paraphrase_mining_embeddings(
             embeddings=embeddings, top_k=top_k, metadatas=metadatas
         )
-        near_duplicates = [entry for entry in duplicates if entry[0] > threshold]
+        near_duplicates = [entry for entry in duplicates if float(entry[0]) > threshold]
 
         if limit is not None:
             near_duplicates = near_duplicates[:limit]

@@ -1,0 +1,23 @@
+{
+  "exclude": ["**/node_modules", "**/__pycache__", "**/database/*"],
+  "include": ["**/*.py"],
+  "typeCheckingMode": "strict",
+  "executionEnvironments": [
+    {
+      "root": "."
+    }
+  ],
+  "defineConstant": {
+    "DEBUG": true
+  },
+  "venvPath": ".",
+  "venv": ".venv",
+  "reportMissingImports": true,
+  "reportMissingParameterType": false,
+  "reportUnusedImport": false,
+  "reportMissingTypeStubs": false,
+  "reportUnknownParameterType": false,
+  "reportUnknownVariableType": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownArgumentType": false
+}

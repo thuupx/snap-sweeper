@@ -9,7 +9,7 @@ from find_duplicate_images.core.utils import (
 
 async def find_and_move_similar_images(
     img_folder: str,
-    limit: int = None,
+    limit: int | None = None,
     top_k=2,
     threshold=0.9,
     dry_run=False,
