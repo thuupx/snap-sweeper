@@ -8,6 +8,7 @@ from typing import Optional
 import customtkinter as ctk
 
 from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
+from desktop_ui.widgets.ouput import OutputWidget
 from desktop_ui.widgets.select_folder import SelectFolderWidget
 from desktop_ui.widgets.settings import SettingsWidget
 from find_duplicate_images.core.find_and_move_similar_images import (
@@ -60,6 +61,9 @@ class DuplicateImageFinderApp:
         self.settings_widget = SettingsWidget(master=right_frame)
         self.settings_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
 
+        self.output_widget = OutputWidget(master=right_frame)
+        self.output_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
+
         self.preview_widget = DuplicatePreviewWidget(master=left_frame)
 
         self.btn_scan = ctk.CTkButton(
@@ -101,11 +105,14 @@ class DuplicateImageFinderApp:
 
     async def process_images(self) -> None:
         try:
+            settings = self.settings_widget.get_settings()
+            print("Start process with settings:", settings)
             results, error = await find_and_move_similar_images(
                 self.image_dir.get(),
                 dry_run=True,
-                top_k=self.settings_widget.top_k.get(),
-                threshold=self.settings_widget.threshold.get() / 100,
+                top_k=settings["top_k"],
+                threshold=settings["threshold"] / 100,
+                sub_folder_name=settings["sub_folder_name"],
             )
             if error:
                 messagebox.showerror("Error", error)

@@ -84,3 +84,11 @@ class SettingsWidget(ctk.CTkFrame):
 
     def on_threshold_changed(self, *args):
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
+
+    def get_settings(self):
+        return {
+            "threshold": self.threshold.get(),
+            "top_k": self.top_k.get(),
+            "dry_run": self.move_images.get(),
+            "sub_folder_name": self.sub_folder_name.get(),
+        }

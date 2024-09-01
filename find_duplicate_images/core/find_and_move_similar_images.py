@@ -8,7 +8,12 @@ from find_duplicate_images.core.utils import (
 
 
 async def find_and_move_similar_images(
-    img_folder: str, limit: int = None, top_k=2, threshold=0.9, dry_run=False
+    img_folder: str,
+    limit: int = None,
+    top_k=2,
+    threshold=0.9,
+    dry_run=False,
+    sub_folder_name="DISCARDED",
 ):
     """
     Find and move similar images based on their similarity.
@@ -52,9 +57,9 @@ async def find_and_move_similar_images(
     results = sorted(results, key=lambda x: x[4], reverse=True)
     returned_results = results
 
-    print(f"Results: {len(results)}")
+    print(f"Total valid similarity pairs: {len(results)}")
     discarded_images = set(map(lambda x: x[1], results))
-    print(f"Discarded images: {len(discarded_images)}")
+    print(f"Total need to be deleted images: {len(discarded_images)}")
     if dry_run:
         results = list(chunkify(results, chunk_size=10))
         for chunk in results:
@@ -63,8 +68,7 @@ async def find_and_move_similar_images(
                 print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
                 print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
     else:
-        DISCARDED_DIR = "DISCARDED"
-        await move_files_to_subdir(discarded_images, DISCARDED_DIR)
+        await move_files_to_subdir(discarded_images, sub_folder_name)
 
     print("Completed!")
     return returned_results, None
