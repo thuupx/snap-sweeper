@@ -8,10 +8,10 @@ class SettingsWidget(ctk.CTkFrame):
         self.master = master
         self.threshold = IntVar(value=90)
         self.top_k = IntVar(value=2)
-        self.dry_run = BooleanVar(value=True)
+        self.should_move_images = BooleanVar(value=True)
         self.sub_folder_name = StringVar(value="DISCARDED")
 
-        self.dry_run.trace_add("write", self.on_dry_run_changed)
+        self.should_move_images.trace_add("write", self.on_dry_run_changed)
         self.setup_ui()
 
     def setup_ui(self):
@@ -62,12 +62,12 @@ class SettingsWidget(ctk.CTkFrame):
         self.move_images_checkbox = ctk.CTkCheckBox(
             master=self,
             text="",
-            variable=self.dry_run,
+            variable=self.should_move_images,
             onvalue=True,
             offvalue=False,
         )
         self.move_images_checkbox_label = ctk.CTkLabel(
-            master=self, text="Move low quality images to temporary trash:"
+            master=self, text="Should move low quality images to trash?"
         )
         self.move_images_checkbox_label.grid(
             row=2, column=1, padx=5, pady=5, sticky="w"
@@ -84,17 +84,46 @@ class SettingsWidget(ctk.CTkFrame):
         )
         self.sub_folder_name_input.grid(row=3, column=2, padx=5, pady=5, sticky="w")
 
+        description_text = (
+            "Low quality images will be moved to temporary folder inside the image folder."
+            if self.should_move_images.get()
+            else "Dry run mode enabled, skipping image move."
+        )
+
+        self.description_text = ctk.CTkLabel(
+            master=self,
+            text=description_text,
+            text_color="grey",
+            anchor="w",
+            width=200,
+            font=ctk.CTkFont(size=12, slant="italic"),
+        )
+        self.description_text.grid(
+            row=4,
+            column=1,
+            columnspan=2,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
     def on_threshold_changed(self, *args) -> None:
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
 
     def on_dry_run_changed(self, *args) -> None:
-        input_state = ctk.NORMAL if self.dry_run.get() else ctk.DISABLED
+        if self.should_move_images.get():
+            input_state = ctk.NORMAL
+            text = "Low quality images will be moved to temporary folder inside the image folder."
+        else:
+            input_state = ctk.DISABLED
+            text = "Dry run mode enabled, skipping image move."
         self.sub_folder_name_input.configure(state=input_state)
+        self.description_text.configure(text=text)
 
     def get_settings(self):
         return {
             "threshold": self.threshold.get() / 100,
             "top_k": self.top_k.get(),
-            "dry_run": self.dry_run.get(),
+            "dry_run": not self.should_move_images.get(),
             "sub_folder_name": self.sub_folder_name.get(),
         }
