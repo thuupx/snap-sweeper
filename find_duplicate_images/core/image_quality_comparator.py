@@ -12,7 +12,7 @@ from .utils import chunkify, memorize_imread
 
 
 class ImageQualityComparator:
-    def __init__(self, max_concurrency: int = None):
+    def __init__(self, max_concurrency: int | None = None):
         self.lock = Lock()
         max_concurrency = (
             max_concurrency or os.cpu_count() * 2 if os.cpu_count() else 10
