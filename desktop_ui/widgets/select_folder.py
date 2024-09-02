@@ -1,34 +1,45 @@
 import os
+from tkinter import StringVar, filedialog
 from typing import Callable
+from typing_extensions import Any
 import customtkinter as ctk
 
 
 class SelectFolderWidget(ctk.CTkFrame):
-    def __init__(self, *args, text: str, on_text_click: Callable[[], None], **kwargs):
-        super().__init__(*args, corner_radius=15, **kwargs)
-        self.on_text_click = on_text_click
-        self.text = text
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, corner_radius=10, **kwargs)
+        self.image_dir: StringVar = StringVar()
+        self.image_dir.set("/Users/thupx/Documents/ThuPX/img")
+        self.image_dir.trace_add("write", self.on_image_dir_changed)
+
         self.setup_ui()
-        self.text_label.bind("<Button-1>", self._on_text_click)
+
 
     def setup_ui(self) -> None:
         self.columnconfigure(0, weight=1)
 
         self.text_label = ctk.CTkLabel(
             master=self,
-            width=200,
             height=64,
-            text=self.text,
+            text=self.image_dir.get() or "Select Folder",
+            font=ctk.CTkFont(size=16, weight="bold"),
         )
+        self.text_label.bind("<Button-1>", self.on_btn_select_dir_clicked)
         self.text_label.grid(row=0, column=0, padx=(5, 10), pady=5, sticky="ew")
 
-    def _on_text_click(self, event):
-        self.on_text_click()
 
     def set_text(self, text: str) -> None:
         if os.path.exists(text):
-            text = os.path.basename(text)
-            if len(text) > 26:
-                text = text[:23] + "..."
-
+            if len(text) > 50:
+                text = ".../" +  text.rsplit("/", 1)[-1]
         self.text_label.configure(text=text)
+    def on_btn_select_dir_clicked(self, event) -> None:
+        directory = filedialog.askdirectory(
+            title="Select Images Folder", initialdir=self.image_dir.get()
+        )
+        if directory:
+            self.image_dir.set(directory)
+
+    def on_image_dir_changed(self, *args: Any) -> None:
+        if self.image_dir.get():
+            self.set_text(self.image_dir.get())

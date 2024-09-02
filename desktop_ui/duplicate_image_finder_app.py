@@ -20,8 +20,6 @@ class DuplicateImageFinderApp:
     def __init__(self, root: ctk.CTk):
         self.root: ctk.CTk = root
         self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
-        self.image_dir: StringVar = StringVar()
-        self.image_dir.set("/Users/thupx/Documents/ThuPX/img")
 
         self.btn_scan: Optional[ctk.CTkButton] = None
         self.progress_bar: Optional[ctk.CTkProgressBar] = None
@@ -34,7 +32,6 @@ class DuplicateImageFinderApp:
         self.setup_ui()
         self.start_asyncio_event_loop()
 
-        self.image_dir.trace_add("write", self.on_image_dir_changed)
 
     def setup_ui(self) -> None:
         self.root.title("Find Duplicate Images")
@@ -55,13 +52,12 @@ class DuplicateImageFinderApp:
 
         self.select_folder_widget = SelectFolderWidget(
             master=right_frame,
-            text=self.image_dir.get() or "Select Folder",
-            on_text_click=self.on_btn_select_dir_clicked,
-            cursor="pointinghand",
+            cursor="pointinghand"
         )
         self.select_folder_widget.pack(
             side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10
         )
+        self.select_folder_widget.image_dir.trace_add("write", self.on_image_dir_changed)
 
         self.settings_widget = SettingsWidget(master=right_frame)
         self.settings_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
@@ -76,8 +72,8 @@ class DuplicateImageFinderApp:
             text="Scan",
             command=self.on_btn_process_clicked,
         )
-        self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)
         self.btn_scan.configure(state=ctk.DISABLED)
+        self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)
 
         self.progress_bar = ctk.CTkProgressBar(
             master=left_frame,
@@ -85,17 +81,9 @@ class DuplicateImageFinderApp:
             mode="indeterminate",
         )
 
-    def on_btn_select_dir_clicked(self) -> None:
-        directory = filedialog.askdirectory(
-            title="Select Images Folder", initialdir=self.image_dir.get()
-        )
-        if directory:
-            self.image_dir.set(directory)
-
     def on_image_dir_changed(self, *args: Any) -> None:
-        if self.select_folder_widget:
-            self.select_folder_widget.set_text(self.image_dir.get())
-        if self.image_dir.get():
+        value = self.select_folder_widget.image_dir.get()
+        if value:
             self.btn_scan.configure(state=ctk.NORMAL)
         else:
             self.btn_scan.configure(state=ctk.DISABLED)
@@ -111,9 +99,10 @@ class DuplicateImageFinderApp:
     async def process_images(self) -> None:
         try:
             settings = self.settings_widget.get_settings()
+            image_dir = self.select_folder_widget.image_dir.get()
             print("Start process with settings:", settings)
             results, error = await find_and_move_similar_images(
-                self.image_dir.get(),
+                image_dir,
                 dry_run=True,
                 top_k=int(settings["top_k"]),
                 threshold=int(settings["threshold"]) / 100,
