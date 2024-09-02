@@ -1,17 +1,19 @@
 import tkinter
 from typing import Any
-from PIL import Image
+from PIL import Image, ImageOps
 import customtkinter as ctk
 import threading
 import queue
+
 
 CHUNK_SIZE = 10  # Number of images to load per chunk
 
 
 class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
-    def __init__(self, master):
+    def __init__(self, master: ctk.CTkFrame):
         super().__init__(master)
         self.master = master
+        self.master.anchor(ctk.CENTER)
         self.duplicates = []
         self.image_queue = queue.Queue()
         self.current_chunk = 0
@@ -43,18 +45,32 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             self.add_duplicate_lazy(duplicate, i)
         self.image_queue.put("done")
 
-    def add_duplicate_lazy(self, duplicate: tuple[str, str, float, float, float], i):
+    def add_duplicate_lazy(self, duplicate: tuple[str, str, float, float, float], i: int):
         best_image = Image.open(duplicate[0])
         worst_image = Image.open(duplicate[1])
 
-        best_image.thumbnail((256, 256))
-        worst_image.thumbnail((256, 256))
+        thumnail_size = 512
+        padding = 10 * 2
+        master = self.master
+        width = master.winfo_width()
+        height = master.winfo_height()
+        scrollbar_width = self._scrollbar.winfo_width()
+        if width > height:
+            thumnail_size = width // 2 - padding - scrollbar_width
+        else:
+            thumnail_size = height // 2 - padding - scrollbar_width
+
+        best_image = ImageOps.exif_transpose(best_image) or best_image
+        worst_image = ImageOps.exif_transpose(worst_image) or worst_image
+
+        best_image.thumbnail((thumnail_size, thumnail_size))
+        worst_image.thumbnail((thumnail_size, thumnail_size))
 
         left_image_size = best_image.size
         right_image_size = worst_image.size
 
-        image_left = ctk.CTkImage(light_image=best_image, size=left_image_size)
-        image_right = ctk.CTkImage(light_image=worst_image, size=right_image_size)
+        image_left = ctk.CTkImage(light_image=best_image, dark_image=best_image, size=left_image_size)
+        image_right = ctk.CTkImage(light_image=worst_image, dark_image=worst_image, size=right_image_size)
 
         # Put the images into the queue
         self.image_queue.put((i, image_left, image_right))
@@ -69,11 +85,13 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
 
                 i, image_left, image_right = item
 
-                left_label = ctk.CTkLabel(master=self, image=image_left, text="")
-                left_label.grid(row=i, column=0, padx=5, pady=5, sticky="ew")
+                self.left_label = ctk.CTkLabel(master=self, image=image_left, text="", cursor="pointinghand")
+                self.left_label.bind("<Button-1>", lambda event: self.on_image_clicked(image_left))
+                self.left_label.grid(row=i, column=0, padx=5, pady=5)
 
-                right_label = ctk.CTkLabel(master=self, image=image_right, text="")
-                right_label.grid(row=i, column=1, padx=5, pady=5, sticky="ew")
+                self.right_label = ctk.CTkLabel(master=self, image=image_right, text="", cursor="pointinghand")
+                self.right_label.bind("<Button-1>", lambda event: self.on_image_clicked(image_right))
+                self.right_label.grid(row=i, column=1, padx=5, pady=5)
         except queue.Empty:
             pass
         finally:
@@ -106,3 +124,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             pady=5,
             sticky="ew",
         )
+
+    def on_image_clicked(self, ctk_image: ctk.CTkImage):
+        image: Image.Image = ctk_image.cget("light_image")
+        image.show()

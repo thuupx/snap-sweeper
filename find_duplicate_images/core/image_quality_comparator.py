@@ -18,8 +18,8 @@ class ImageQualityComparator:
             max_concurrency or os.cpu_count() * 2 if os.cpu_count() else 10
         )
         self.semaphore = asyncio.Semaphore(max_concurrency)
-        self.scoring_executor = ThreadPoolExecutor(max_workers=2)
-        self.quality_executor = ThreadPoolExecutor(max_workers=2)
+        self.scoring_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
+        self.quality_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 
     def get_np_array(self, img_path, pixel_x=64, pixel_y=64):
         img = memorize_imread(img_path)

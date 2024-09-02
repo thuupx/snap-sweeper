@@ -71,6 +71,7 @@ class DuplicateImageFinderApp:
             master=right_frame,
             text="Scan",
             command=self.on_btn_process_clicked,
+            cursor="pointinghand"
         )
         self.btn_scan.configure(state=ctk.DISABLED)
         self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)

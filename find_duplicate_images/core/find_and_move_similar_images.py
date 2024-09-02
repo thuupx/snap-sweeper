@@ -61,12 +61,7 @@ async def find_and_move_similar_images(
     discarded_images = set(map(lambda x: x[1], results))
     print(f"Total need to be deleted images: {len(discarded_images)}")
     if dry_run:
-        results = list(chunkify(results, chunk_size=10))
-        for chunk in results:
-            for best_img, worst_img, best_score, worst_score, similarity in chunk:
-                print(f"\n\nSimilarity Score: {similarity:.3f}")
-                print(f"Best Quality Image: {best_img}, score: {best_score:.2f}")
-                print(f"Worst Quality Image: {worst_img}, score: {worst_score:.2f}")
+        print("Dry run mode enabled, skipping image deletion.")
     else:
         await move_files_to_subdir(list(discarded_images), sub_folder_name)
 
