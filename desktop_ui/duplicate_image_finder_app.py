@@ -32,7 +32,6 @@ class DuplicateImageFinderApp:
         self.setup_ui()
         self.start_asyncio_event_loop()
 
-
     def setup_ui(self) -> None:
         self.root.title("Find Duplicate Images")
         self.root.geometry("1600x1024")
@@ -51,13 +50,14 @@ class DuplicateImageFinderApp:
         right_frame.grid(row=0, column=1, padx=(5, 10), pady=10, sticky="nsew")
 
         self.select_folder_widget = SelectFolderWidget(
-            master=right_frame,
-            cursor="pointinghand"
+            master=right_frame, cursor="pointinghand"
         )
         self.select_folder_widget.pack(
             side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10
         )
-        self.select_folder_widget.image_dir.trace_add("write", self.on_image_dir_changed)
+        self.select_folder_widget.image_dir.trace_add(
+            "write", self.on_image_dir_changed
+        )
 
         self.settings_widget = SettingsWidget(master=right_frame)
         self.settings_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
@@ -71,7 +71,7 @@ class DuplicateImageFinderApp:
             master=right_frame,
             text="Scan",
             command=self.on_btn_process_clicked,
-            cursor="pointinghand"
+            cursor="pointinghand",
         )
         self.btn_scan.configure(state=ctk.DISABLED)
         self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)
@@ -93,6 +93,7 @@ class DuplicateImageFinderApp:
         self.btn_scan.configure(state=ctk.DISABLED)
         self.progress_bar.pack(side=tkinter.BOTTOM, fill="x", padx=8, pady=8)
         self.progress_bar.start()
+        self.output_widget.clear()
         if not self.loop.is_running():
             self.start_asyncio_event_loop()
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
@@ -101,10 +102,10 @@ class DuplicateImageFinderApp:
         try:
             settings = self.settings_widget.get_settings()
             image_dir = self.select_folder_widget.image_dir.get()
-            print("Start process with settings:", settings)
+            print(settings)
             results, error = await find_and_move_similar_images(
                 image_dir,
-                dry_run=True,
+                dry_run=bool(settings["dry_run"]),
                 top_k=int(settings["top_k"]),
                 threshold=float(settings["threshold"]),
                 sub_folder_name=str(settings["sub_folder_name"]),

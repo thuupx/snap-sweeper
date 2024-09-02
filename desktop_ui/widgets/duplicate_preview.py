@@ -1,10 +1,9 @@
-import tkinter
-from typing import Any
-from PIL import Image, ImageOps
-import customtkinter as ctk
-import threading
 import queue
+import threading
+from typing import Any
 
+import customtkinter as ctk
+from PIL import Image, ImageOps
 
 CHUNK_SIZE = 10  # Number of images to load per chunk
 
@@ -45,7 +44,9 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             self.add_duplicate_lazy(duplicate, i)
         self.image_queue.put("done")
 
-    def add_duplicate_lazy(self, duplicate: tuple[str, str, float, float, float], i: int):
+    def add_duplicate_lazy(
+        self, duplicate: tuple[str, str, float, float, float], i: int
+    ):
         best_image = Image.open(duplicate[0])
         worst_image = Image.open(duplicate[1])
 
@@ -69,8 +70,12 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         left_image_size = best_image.size
         right_image_size = worst_image.size
 
-        image_left = ctk.CTkImage(light_image=best_image, dark_image=best_image, size=left_image_size)
-        image_right = ctk.CTkImage(light_image=worst_image, dark_image=worst_image, size=right_image_size)
+        image_left = ctk.CTkImage(
+            light_image=best_image, dark_image=best_image, size=left_image_size
+        )
+        image_right = ctk.CTkImage(
+            light_image=worst_image, dark_image=worst_image, size=right_image_size
+        )
 
         # Put the images into the queue
         self.image_queue.put((i, image_left, image_right))
@@ -85,12 +90,22 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
 
                 i, image_left, image_right = item
 
-                self.left_label = ctk.CTkLabel(master=self, image=image_left, text="", cursor="pointinghand")
-                self.left_label.bind("<Button-1>", lambda event: self.on_image_clicked(image_left))
+                self.left_label = ctk.CTkLabel(
+                    master=self, image=image_left, text="", cursor="pointinghand"
+                )
+                self.left_label.bind(
+                    "<Button-1>",
+                    lambda event: self.on_image_clicked(event, image_left),
+                )
                 self.left_label.grid(row=i, column=0, padx=5, pady=5)
 
-                self.right_label = ctk.CTkLabel(master=self, image=image_right, text="", cursor="pointinghand")
-                self.right_label.bind("<Button-1>", lambda event: self.on_image_clicked(image_right))
+                self.right_label = ctk.CTkLabel(
+                    master=self, image=image_right, text="", cursor="pointinghand"
+                )
+                self.right_label.bind(
+                    "<Button-1>",
+                    lambda event: self.on_image_clicked(event, image_right),
+                )
                 self.right_label.grid(row=i, column=1, padx=5, pady=5)
         except queue.Empty:
             pass
@@ -125,6 +140,6 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             sticky="ew",
         )
 
-    def on_image_clicked(self, ctk_image: ctk.CTkImage):
+    def on_image_clicked(self, event: Any, ctk_image: ctk.CTkImage):
         image: Image.Image = ctk_image.cget("light_image")
         image.show()

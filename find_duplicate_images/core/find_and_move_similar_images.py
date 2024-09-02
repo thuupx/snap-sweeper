@@ -60,7 +60,9 @@ async def find_and_move_similar_images(
 
     print(f"Total valid similarity pairs: {len(results)}")
     discarded_images = set(map(lambda x: x[1], results))
-    print(f"Total low quality images (to be deleted): {len(discarded_images)}")
+    print(
+        f"Total similarity low quality images (to be deleted): {len(discarded_images)}"
+    )
     if dry_run:
         print("Dry run mode enabled, skipping image deletion.")
     else:

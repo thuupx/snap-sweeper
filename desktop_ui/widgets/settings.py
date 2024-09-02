@@ -1,4 +1,5 @@
-from tkinter import BooleanVar, IntVar, StringVar, Variable
+from tkinter import BooleanVar, IntVar, StringVar
+
 import customtkinter as ctk
 
 

@@ -53,6 +53,7 @@ async def is_image_file(file_path: str) -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def list_all_files(directory: str) -> list[str]:
     """Recursively list all files in the given directory."""
     file_list = []

@@ -42,3 +42,8 @@ class OutputWidget(ctk.CTkFrame):
         )
         self.output_text.configure(state=ctk.DISABLED)
         self.output_text.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+
+    def clear(self):
+        self.output_text.configure(state=ctk.NORMAL)
+        self.output_text.delete(0.0, ctk.END)
+        self.output_text.configure(state=ctk.DISABLED)
