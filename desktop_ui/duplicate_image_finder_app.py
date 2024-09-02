@@ -106,7 +106,7 @@ class DuplicateImageFinderApp:
                 image_dir,
                 dry_run=True,
                 top_k=int(settings["top_k"]),
-                threshold=int(settings["threshold"]) / 100,
+                threshold=float(settings["threshold"]),
                 sub_folder_name=str(settings["sub_folder_name"]),
             )
             if error:

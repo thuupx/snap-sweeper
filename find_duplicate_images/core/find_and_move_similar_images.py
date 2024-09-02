@@ -1,3 +1,4 @@
+import time
 from find_duplicate_images.core.image_analyzer import ImageAnalyzer
 from find_duplicate_images.core.image_quality_comparator import ImageQualityComparator
 from find_duplicate_images.core.utils import (
@@ -29,7 +30,7 @@ async def find_and_move_similar_images(
     Returns:
         tuple: A tuple containing a list of tuples containing the best and worst image paths, their scores, and the similarity score, and a string containing the error message if any.
     """
-
+    start_time = time.time()
     image_analyzer = ImageAnalyzer()
     image_quality_comparator = ImageQualityComparator()
 
@@ -50,7 +51,7 @@ async def find_and_move_similar_images(
         print("No valid near duplicates pairs found.")
         return None, "No valid near duplicates pairs found."
 
-    print("Analyzing pairs...")
+    print("Image quality comparison is processing...")
     results = await image_quality_comparator.perform_image_quality_comparison(
         valid_pairs
     )
@@ -59,11 +60,11 @@ async def find_and_move_similar_images(
 
     print(f"Total valid similarity pairs: {len(results)}")
     discarded_images = set(map(lambda x: x[1], results))
-    print(f"Total need to be deleted images: {len(discarded_images)}")
+    print(f"Total low quality images (to be deleted): {len(discarded_images)}")
     if dry_run:
         print("Dry run mode enabled, skipping image deletion.")
     else:
         await move_files_to_subdir(list(discarded_images), sub_folder_name)
 
-    print("Completed!")
+    print("Completed in %.2f seconds" % (time.time() - start_time))
     return returned_results, None

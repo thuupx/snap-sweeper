@@ -1,7 +1,7 @@
 import asyncio
 import queue
 import time
-from typing import Any, List, Union
+from typing import Any, List
 
 import chromadb
 from chromadb.api.types import IncludeEnum
@@ -66,6 +66,7 @@ class ImageAnalyzer:
         current_image_paths = self.collection.get(ids=image_paths)["ids"]
         image_paths = [path for path in image_paths if path not in current_image_paths]
         if len(image_paths) > 0:
+            print(f"Creating embeddings for {len(image_paths)} images...")
             start_time = time.time()
             with tqdm(
                 total=len(image_paths), desc="Creating embeddings"
@@ -190,7 +191,9 @@ class ImageAnalyzer:
         duplicates = ImageAnalyzer.paraphrase_mining_embeddings(
             embeddings=embeddings, top_k=top_k, metadatas=metadatas
         )
-        near_duplicates = [entry for entry in duplicates if float(entry[0]) >= threshold]
+        near_duplicates = [
+            entry for entry in duplicates if round(float(entry[0]), 2) >= threshold
+        ]
 
         if limit is not None:
             near_duplicates = near_duplicates[:limit]

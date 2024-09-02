@@ -8,8 +8,10 @@ class SettingsWidget(ctk.CTkFrame):
         self.master = master
         self.threshold = IntVar(value=90)
         self.top_k = IntVar(value=2)
-        self.move_images = BooleanVar(value=True)
+        self.dry_run = BooleanVar(value=True)
         self.sub_folder_name = StringVar(value="DISCARDED")
+
+        self.dry_run.trace_add("write", self.on_dry_run_changed)
         self.setup_ui()
 
     def setup_ui(self):
@@ -60,12 +62,12 @@ class SettingsWidget(ctk.CTkFrame):
         self.move_images_checkbox = ctk.CTkCheckBox(
             master=self,
             text="",
-            variable=self.move_images,
+            variable=self.dry_run,
             onvalue=True,
             offvalue=False,
         )
         self.move_images_checkbox_label = ctk.CTkLabel(
-            master=self, text="Move images to subfolder:"
+            master=self, text="Move low quality images to temporary trash:"
         )
         self.move_images_checkbox_label.grid(
             row=2, column=1, padx=5, pady=5, sticky="w"
@@ -74,7 +76,7 @@ class SettingsWidget(ctk.CTkFrame):
 
         # sub folder name input and label
         self.sub_folder_name_label = ctk.CTkLabel(
-            master=self, text="Subfolder name to move images to:"
+            master=self, text="Temporary trash folder name:"
         )
         self.sub_folder_name_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
         self.sub_folder_name_input = ctk.CTkEntry(
@@ -85,10 +87,14 @@ class SettingsWidget(ctk.CTkFrame):
     def on_threshold_changed(self, *args) -> None:
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
 
+    def on_dry_run_changed(self, *args) -> None:
+        input_state = ctk.NORMAL if self.dry_run.get() else ctk.DISABLED
+        self.sub_folder_name_input.configure(state=input_state)
+
     def get_settings(self):
         return {
-            "threshold": self.threshold.get(),
+            "threshold": self.threshold.get() / 100,
             "top_k": self.top_k.get(),
-            "dry_run": self.move_images.get(),
+            "dry_run": self.dry_run.get(),
             "sub_folder_name": self.sub_folder_name.get(),
         }
