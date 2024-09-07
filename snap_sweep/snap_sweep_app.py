@@ -1,22 +1,21 @@
 import asyncio
 import threading
 import tkinter
-import tkinter.dnd
-from tkinter import StringVar, filedialog, messagebox
-from typing import Optional, Dict, Any, Tuple, List
+from tkinter import messagebox
+from typing import Any, Optional
 
 import customtkinter as ctk
 
-from desktop_ui.widgets.duplicate_preview import DuplicatePreviewWidget
-from desktop_ui.widgets.output import OutputWidget
-from desktop_ui.widgets.select_folder import SelectFolderWidget
-from desktop_ui.widgets.settings import SettingsWidget
 from find_duplicate_images.core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
+from .widgets.duplicate_preview import DuplicatePreviewWidget
+from .widgets.output import OutputWidget
+from .widgets.select_folder import SelectFolderWidget
+from .widgets.settings import SettingsWidget
 
 
-class DuplicateImageFinderApp:
+class SnapSweepApp:
     def __init__(self, root: ctk.CTk):
         self.root: ctk.CTk = root
         self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()

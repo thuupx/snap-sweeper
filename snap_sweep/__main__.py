@@ -2,7 +2,7 @@ import os
 
 
 def main():
-    from desktop_ui.duplicate_image_finder_app import DuplicateImageFinderApp
+    from .snap_sweep_app import SnapSweepApp
     import customtkinter as ctk
     import os
 
@@ -12,7 +12,7 @@ def main():
     )
 
     root = ctk.CTk()
-    DuplicateImageFinderApp(root)
+    SnapSweepApp(root)
     root.mainloop()
 
 
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     if app_env != "production":
         from hupper import start_reloader
 
-        reloader = start_reloader("desktop_ui.__main__.main")
+        reloader = start_reloader("snap_sweep.__main__.main")
     main()

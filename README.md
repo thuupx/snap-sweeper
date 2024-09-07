@@ -26,7 +26,9 @@ Then you can run the script with `python3 find_duplicate_images.py`
 
 `pip install -r requirements.txt`
 
-`pyinstaller ./find_duplicates.spec`
+Build Desktop UI
+
+`pyinstaller ./snap_sweep.spec`
 
 ### Usage
 
