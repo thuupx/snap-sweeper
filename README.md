@@ -6,10 +6,10 @@ The Image Duplicate Finder Project aims to provide a robust solution for identif
 
 ### Key Objectives
 
-- *Storage Optimization*: Free up storage by removing unnecessary duplicates.
-- *Efficient Management*: Simplify the organization of large collections of images.
-- *User-Friendly Interface*: Provide both command-line and desktop UI options for flexible usage.
-- *Support for Multiple Formats*: Ensure broad compatibility with different image formats.
+- **Storage Optimization**: Free up storage by removing unnecessary duplicates.
+- **Efficient Management**: Simplify the organization of large collections of images.
+- **User-Friendly Interface**: Provide both command-line and desktop UI options for flexible usage.
+- **Support for Multiple Formats**: Ensure broad compatibility with different image formats.
 
 ## Features
 
