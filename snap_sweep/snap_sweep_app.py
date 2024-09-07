@@ -32,14 +32,6 @@ class SnapSweepApp:
         self.start_asyncio_event_loop()
 
     def setup_ui(self) -> None:
-        self.root.title("Find Duplicate Images")
-        self.root.geometry("1600x1024")
-
-        # Configure the grid system
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-        self.root.grid_columnconfigure(1, weight=0)
-
         # Create left frame
         left_frame = ctk.CTkFrame(master=self.root, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="nsew")

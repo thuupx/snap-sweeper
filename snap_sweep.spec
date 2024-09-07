@@ -4,23 +4,32 @@ import os
 from PyInstaller.utils.hooks import collect_all
 
 libsvm_datas, libsvm_binaries, libsvm_hiddenimports = collect_all("libsvm")
+chromadb_datas, chromadb_binaries, chromadb_hiddenimports = collect_all("chromadb")
+brisque_datas, brisque_binaries, brisque_hiddenimports = collect_all("brisque")
 
 ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
 
 a = Analysis(
     ["snap_sweep/__main__.py"],
     pathex=[os.path.abspath(os.curdir)],  # Ensure the current directory is in the path
-    binaries=libsvm_binaries,
+    binaries=[
+        *libsvm_binaries,
+        *chromadb_binaries,
+        *brisque_binaries,
+    ],
     datas=[
         (ctk_data, "customtkinter/"),
-        ("snap_sweep/themes", "themes/"),
+        ("snap_sweep/resources", "resources/"),
         *libsvm_datas,
+        *chromadb_datas,
+        *brisque_datas,
     ],
     hiddenimports=[
         *libsvm_hiddenimports,
+        *chromadb_hiddenimports,
+        *brisque_hiddenimports,
         "snap_sweep",
         "snap_sweep.snap_sweep_app",
-        "chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2",
     ],
     hookspath=[],
     hooksconfig={},
@@ -28,6 +37,9 @@ a = Analysis(
     excludes=[],
     noarchive=False,
     optimize=0,
+    module_collection_mode={
+        "chromadb": "py",
+    },
 )
 pyz = PYZ(a.pure)
 
@@ -47,6 +59,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon="snap_sweep/resources/icon.ico",
 )
 coll = COLLECT(
     exe,
@@ -60,6 +73,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name="SnapSweep.app",
-    icon=None,
     bundle_identifier=None,
+    icon="snap_sweep/resources/icon.icns",
 )
