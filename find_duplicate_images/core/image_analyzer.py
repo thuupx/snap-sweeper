@@ -1,7 +1,9 @@
 import asyncio
 import queue
+import sys
 import time
 from typing import Any, List
+from pathlib import Path
 
 import chromadb
 from chromadb.api.types import IncludeEnum
@@ -15,15 +17,15 @@ from tqdm.asyncio import tqdm
 from .utils import chunkify
 
 MODEL_NAME = "clip-ViT-B-32"
-DB_PATH = "./database"
+DB_PATH_NAME = "database"
 
 
 class ImageAnalyzer:
     def __init__(self):
-        self.setup_database()
+        self._setup_database()
 
-    def setup_database(self):
-        self.client = chromadb.PersistentClient(path=DB_PATH)
+    def _setup_database(self):
+        self.client = chromadb.PersistentClient(path=self._get_database_path())
         embedding_function: Any = SentenceTransformerEmbeddingFunction(
             model_name=MODEL_NAME, device=util.get_device_name()
         )
@@ -34,16 +36,40 @@ class ImageAnalyzer:
         )
 
     @staticmethod
-    async def load_image(filepath: str):
+    async def _load_image(filepath: str):
         image = Image.open(filepath)
         return image
 
     @staticmethod
-    async def async_load_images(batch_paths: list[str]):
+    async def _async_load_images(batch_paths: list[str]):
         images = await asyncio.gather(
-            *[ImageAnalyzer.load_image(path) for path in batch_paths]
+            *[ImageAnalyzer._load_image(path) for path in batch_paths]
         )
         return images
+
+    @staticmethod
+    def _get_database_path():
+        if getattr(sys, "frozen", False):
+            # Running as compiled application
+            app_path = Path(sys.executable).parent.parent
+            db_path = app_path / "Contents" / "Resources" / DB_PATH_NAME
+        else:
+            # Running in a normal Python environment
+            db_path = Path("./" + DB_PATH_NAME)
+
+        # Use Application Support directory on macOS
+        if sys.platform == "darwin":
+            db_path = (
+                Path.home()
+                / "Library"
+                / "Application Support"
+                / "SnapSweep"
+                / DB_PATH_NAME
+            )
+
+        # Ensure the directory exists
+        db_path.mkdir(parents=True, exist_ok=True)
+        return str(db_path)
 
     async def add_images(self, image_paths: list[str]):
         """
@@ -52,7 +78,7 @@ class ImageAnalyzer:
         Parameters:
             image_paths (list[str]): A list of image paths to add to the database.
         """
-        images: List[Any] = await ImageAnalyzer.async_load_images(image_paths)
+        images: List[Any] = await ImageAnalyzer._async_load_images(image_paths)
         self.collection.add(
             ids=image_paths,
             images=images,

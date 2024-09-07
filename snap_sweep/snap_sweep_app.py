@@ -18,7 +18,7 @@ from .widgets.settings import SettingsWidget
 class SnapSweepApp:
     def __init__(self, root: ctk.CTk):
         self.root: ctk.CTk = root
-        self.loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
         self.btn_scan: Optional[ctk.CTkButton] = None
         self.progress_bar: Optional[ctk.CTkProgressBar] = None
@@ -28,8 +28,7 @@ class SnapSweepApp:
         self.output_widget: Optional[OutputWidget] = None
         self.preview_widget: Optional[DuplicatePreviewWidget] = None
 
-        self.setup_ui()
-        self.start_asyncio_event_loop()
+        self.ensure_asyncio_event_loop()
 
     def setup_ui(self) -> None:
         # Create left frame
@@ -85,8 +84,6 @@ class SnapSweepApp:
         self.progress_bar.pack(side=tkinter.BOTTOM, fill="x", padx=8, pady=8)
         self.progress_bar.start()
         self.output_widget.clear()
-        if not self.loop.is_running():
-            self.start_asyncio_event_loop()
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
 
     async def process_images(self) -> None:
@@ -119,12 +116,16 @@ class SnapSweepApp:
             self.progress_bar.pack_forget()
             self.btn_scan.configure(state=ctk.NORMAL)
 
-    def start_asyncio_event_loop(self) -> None:
-        t = threading.Thread(
-            target=self._start_event_loop, args=(self.loop,), daemon=True
-        )
-        t.start()
+    def ensure_asyncio_event_loop(self) -> None:
+        if not self.loop.is_running():
+            t = threading.Thread(target=self._run_event_loop, daemon=True)
+            t.start()
 
-    def _start_event_loop(self, loop: asyncio.AbstractEventLoop) -> None:
-        asyncio.set_event_loop(loop)
-        loop.run_forever()
+    def _run_event_loop(self) -> None:
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
+    def cleanup(self) -> None:
+        for task in asyncio.all_tasks(self.loop):
+            task.cancel()
+        self.loop.call_soon_threadsafe(self.loop.stop)
