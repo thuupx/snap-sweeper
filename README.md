@@ -2,15 +2,23 @@
 
 ## Overview
 
-This project focuses on rapidly identifying duplicate images within a dataset. The motivation behind this project is to optimize storage usage and eliminate redundant images, which can be critical for maintaining large image repositories or organizing personal photo collections.
+The Image Duplicate Finder Project aims to provide a robust solution for identifying and managing duplicate images within large datasets. By detecting redundant images, the project helps optimize storage usage and streamline image organization, which is essential for both professional and personal use cases. Leveraging advanced image processing techniques, the tool offers a command-line interface for automation and a desktop UI for ease of use, supporting various image formats including JPEG, PNG, and BMP.
+
+### Key Objectives
+
+- *Storage Optimization*: Free up storage by removing unnecessary duplicates.
+- *Efficient Management*: Simplify the organization of large collections of images.
+- *User-Friendly Interface*: Provide both command-line and desktop UI options for flexible usage.
+- *Support for Multiple Formats*: Ensure broad compatibility with different image formats.
 
 ## Features
 
-Detects and removes duplicate images efficiently.
-
-Command-line interface for ease of automation.
-
-Desktop UI for user-friendly interaction.
+- Detects and removes duplicate images efficiently.
+- Command-line interface for ease of automation.
+- Desktop UI for a user-friendly interface.
+- Supports multiple image formats, including JPEG, PNG, and BMP.
+- Optimized for large image datasets.
+- Automatically identifies and moves duplicate images to a designated sub-folder.
 
 ## Usage for Common Users
 
@@ -21,6 +29,8 @@ To find and eliminate duplicate images in a directory, you can use the script as
 For more help on usage:
 
 `python -m find_duplicate_images -h`
+
+You can also use the desktop UI to find and eliminate duplicate images with easy to understand interface.
 
 ## Developer Setup
 
