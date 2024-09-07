@@ -9,7 +9,7 @@ class SettingsWidget(ctk.CTkFrame):
         self.master = master
         self.threshold = IntVar(value=90)
         self.top_k = IntVar(value=2)
-        self.should_move_images = BooleanVar(value=True)
+        self.should_move_images = BooleanVar(value=False)
         self.sub_folder_name = StringVar(value="DISCARDED")
 
         self.should_move_images.trace_add("write", self.on_dry_run_changed)
@@ -60,20 +60,20 @@ class SettingsWidget(ctk.CTkFrame):
         self.top_k_input.grid(row=1, column=2, padx=5, pady=5, sticky="w")
 
         # checkbox to dertermine if we want to move the images or not
-        self.move_images_checkbox = ctk.CTkCheckBox(
-            master=self,
-            text="",
-            variable=self.should_move_images,
-            onvalue=True,
-            offvalue=False,
-        )
-        self.move_images_checkbox_label = ctk.CTkLabel(
-            master=self, text="Should move low quality images to trash?"
-        )
-        self.move_images_checkbox_label.grid(
-            row=2, column=1, padx=5, pady=5, sticky="w"
-        )
-        self.move_images_checkbox.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+        # self.move_images_checkbox = ctk.CTkCheckBox(
+        #     master=self,
+        #     text="",
+        #     variable=self.should_move_images,
+        #     onvalue=True,
+        #     offvalue=False,
+        # )
+        # self.move_images_checkbox_label = ctk.CTkLabel(
+        #     master=self, text="Should move low quality images to trash?"
+        # )
+        # self.move_images_checkbox_label.grid(
+        #     row=2, column=1, padx=5, pady=5, sticky="w"
+        # )
+        # self.move_images_checkbox.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # sub folder name input and label
         self.sub_folder_name_label = ctk.CTkLabel(
@@ -88,7 +88,7 @@ class SettingsWidget(ctk.CTkFrame):
         description_text = (
             "Low quality images will be moved to temporary folder inside the image folder."
             if self.should_move_images.get()
-            else "Dry run mode enabled, skipping image move."
+            else ""
         )
 
         self.description_text = ctk.CTkLabel(

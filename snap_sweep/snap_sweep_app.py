@@ -57,11 +57,16 @@ class SnapSweepApp:
 
         self.preview_widget = DuplicatePreviewWidget(master=left_frame)
 
+        self.sweep_button = ctk.CTkButton(
+            right_frame, text="Start Sweep", command=self.start_sweep, fg_color="red"
+        )
+        self.sweep_button.configure(state=ctk.DISABLED)
+        self.sweep_button.pack(side=ctk.BOTTOM, padx=10, pady=(0, 10))
+
         self.btn_scan = ctk.CTkButton(
             master=right_frame,
             text="Scan",
             command=self.on_btn_process_clicked,
-            cursor="pointinghand",
         )
         self.btn_scan.configure(state=ctk.DISABLED)
         self.btn_scan.pack(side=tkinter.BOTTOM, padx=10, pady=10)
@@ -85,6 +90,9 @@ class SnapSweepApp:
         self.progress_bar.start()
         self.output_widget.clear()
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
+
+    def start_sweep(self) -> None:
+        pass
 
     async def process_images(self) -> None:
         try:
