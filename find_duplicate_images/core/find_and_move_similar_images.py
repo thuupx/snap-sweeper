@@ -42,13 +42,13 @@ async def find_and_move_similar_images(
 
     if not search_results:
         print("No near duplicates found.")
-        return None, "No near duplicates found."
+        return None, None, "No near duplicates found."
 
     valid_pairs = ImageAnalyzer.remove_invalid_pairs(search_results)
 
     if not valid_pairs:
         print("No valid near duplicates pairs found.")
-        return None, "No valid near duplicates pairs found."
+        return None, None, "No valid near duplicates pairs found."
 
     print("Image quality comparison is processing...")
     results = await image_quality_comparator.perform_image_quality_comparison(
@@ -68,4 +68,4 @@ async def find_and_move_similar_images(
         await move_files_to_subdir(list(discarded_images), sub_folder_name)
 
     print("Completed in %.2f seconds" % (time.time() - start_time))
-    return returned_results, None
+    return returned_results, discarded_images, None

@@ -6,6 +6,7 @@ import customtkinter as ctk
 from PIL import Image, ImageOps
 
 CHUNK_SIZE = 10  # Number of images to load per chunk
+LOAD_MORE_BUTTON_TEXT = "Load More"
 
 
 class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
@@ -124,13 +125,22 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         ).start()
         self.current_chunk += 1
         self.after(100, self.process_image_queue)
+        # Remove the existing "Load More" button
+        for widget in self.winfo_children():
+            if (
+                isinstance(widget, ctk.CTkButton)
+                and widget.cget("text") == LOAD_MORE_BUTTON_TEXT
+            ):
+                widget.destroy()
 
     def add_load_more_button(self):
         if self.current_chunk * CHUNK_SIZE >= self.total_items:
             return
 
         load_more_button = ctk.CTkButton(
-            master=self, text="Load More", command=self.load_next_chunk
+            master=self,
+            text=LOAD_MORE_BUTTON_TEXT,
+            command=self.load_next_chunk,
         )
         load_more_button.grid(
             row=self.current_chunk * CHUNK_SIZE,

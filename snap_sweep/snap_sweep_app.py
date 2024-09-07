@@ -9,6 +9,7 @@ import customtkinter as ctk
 from find_duplicate_images.core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
+from find_duplicate_images.core.utils import move_files_to_subdir
 from .widgets.duplicate_preview import DuplicatePreviewWidget
 from .widgets.output import OutputWidget
 from .widgets.select_folder import SelectFolderWidget
@@ -58,7 +59,11 @@ class SnapSweepApp:
         self.preview_widget = DuplicatePreviewWidget(master=left_frame)
 
         self.sweep_button = ctk.CTkButton(
-            right_frame, text="Start Sweep", command=self.start_sweep, fg_color="red"
+            right_frame,
+            text="Start Sweep",
+            command=self.on_sweep_clicked,
+            fg_color="#ef4444",
+            hover_color="#f87171",
         )
         self.sweep_button.configure(state=ctk.DISABLED)
         self.sweep_button.pack(side=ctk.BOTTOM, padx=10, pady=(0, 10))
@@ -91,15 +96,41 @@ class SnapSweepApp:
         self.output_widget.clear()
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
 
-    def start_sweep(self) -> None:
-        pass
+    async def start_sweep(self) -> None:
+        discarded_images = list(self.discarded_images)
+
+        if (
+            messagebox.askyesno(
+                "Confirmation", "Are you sure you want to start the sweep?"
+            )
+            and len(discarded_images) > 0
+        ):
+            settings = self.settings_widget.get_settings()
+            sub_folder_name = str(settings["sub_folder_name"])
+            print(f"Moving {len(discarded_images)} images to {sub_folder_name}")
+            await move_files_to_subdir(
+                discarded_images,
+                sub_folder_name,
+            )
+            print("Completed")
+            print(
+                f"Now you can review the images again in {sub_folder_name} and delete them manually."
+            )
+            self.sweep_button.configure(state=ctk.DISABLED)
+        else:
+            print("Cancelled")
+            self.sweep_button.configure(state=ctk.NORMAL)
+            self.btn_scan.configure(state=ctk.NORMAL)
+
+    def on_sweep_clicked(self) -> None:
+        asyncio.run_coroutine_threadsafe(self.start_sweep(), self.loop)
 
     async def process_images(self) -> None:
         try:
             settings = self.settings_widget.get_settings()
             image_dir = self.select_folder_widget.image_dir.get()
             print(settings)
-            results, error = await find_and_move_similar_images(
+            results, discarded_images, error = await find_and_move_similar_images(
                 image_dir,
                 dry_run=bool(settings["dry_run"]),
                 top_k=int(settings["top_k"]),
@@ -108,11 +139,13 @@ class SnapSweepApp:
             )
             if error:
                 messagebox.showerror("Error", error)
-            elif results:
+            elif results and discarded_images:
                 self.preview_widget.set_duplicates(results)
                 self.preview_widget.pack(
                     side=tkinter.TOP, fill=tkinter.BOTH, padx=10, pady=10
                 )
+                self.discarded_images = discarded_images
+                self.sweep_button.configure(state=ctk.NORMAL)
             else:
                 messagebox.showerror("Error", "Error: No results found.")
 
@@ -123,6 +156,7 @@ class SnapSweepApp:
             self.progress_bar.stop()
             self.progress_bar.pack_forget()
             self.btn_scan.configure(state=ctk.NORMAL)
+            self.sweep_button.configure(state=ctk.NORMAL)
 
     def ensure_asyncio_event_loop(self) -> None:
         if not self.loop.is_running():
