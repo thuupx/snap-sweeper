@@ -3,15 +3,21 @@ from PyInstaller.utils.hooks import collect_all
 
 libsvm_datas, libsvm_binaries, libsvm_hiddenimports = collect_all("libsvm")
 
+ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
+
 a = Analysis(
-    ['snap_sweep/__main__.py'],
+    ["snap_sweep/__main__.py"],
     pathex=[],
     binaries=libsvm_binaries,
-    datas=[('./.venv/lib/python3.12/site-packages/customtkinter', 'customtkinter/'), *libsvm_datas],
-    hiddenimports=libsvm_hiddenimports,
+    datas=[
+        (ctk_data, "customtkinter/"),
+        ("snap_sweep/themes", "snap_sweep/themes"),
+        *libsvm_datas,
+    ],
+    hiddenimports=[*libsvm_hiddenimports, "snap_sweep"],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=['set_env_vars.py'],  # Add the runtime hook here
+    runtime_hooks=["set_env_vars.py"],  # Add the runtime hook here
     excludes=[],
     noarchive=False,
     optimize=0,
@@ -23,7 +29,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='SnapSweep',
+    name="SnapSweep",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -42,11 +48,11 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='SnapSweep',
+    name="SnapSweep",
 )
 app = BUNDLE(
     coll,
-    name='SnapSweep.app',
+    name="SnapSweep.app",
     icon=None,
     bundle_identifier=None,
 )

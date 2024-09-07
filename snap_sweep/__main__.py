@@ -1,10 +1,11 @@
 import os
 
+import customtkinter as ctk
+
+from snap_sweep.snap_sweep_app import SnapSweepApp
+
 
 def main():
-    from .snap_sweep_app import SnapSweepApp
-    import customtkinter as ctk
-    import os
 
     ctk.set_appearance_mode("system")
     ctk.set_default_color_theme(
