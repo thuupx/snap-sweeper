@@ -1,8 +1,8 @@
-# Image Duplicate Finder Project
+# Snap Sweep - Image Duplicate Finder
 
 ## Overview
 
-The Image Duplicate Finder Project aims to provide a robust solution for identifying and managing duplicate images within large datasets. By detecting redundant images, the project helps optimize storage usage and streamline image organization, which is essential for both professional and personal use cases. Leveraging advanced image processing techniques, the tool offers a command-line interface for automation and a desktop UI for ease of use, supporting various image formats including JPEG, PNG, and BMP.
+Snap Sweep - The Image Duplicate Finder aims to provide a robust solution for identifying and managing duplicate images within large datasets. By detecting redundant images, the project helps optimize storage usage and streamline image organization, which is essential for both professional and personal use cases. Leveraging advanced image processing techniques, the tool offers a command-line interface for automation and a desktop UI for ease of use, supporting various image formats including JPEG, PNG, and BMP.
 
 ### Key Objectives
 
