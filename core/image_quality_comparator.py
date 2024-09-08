@@ -1,11 +1,11 @@
 import asyncio
+import os
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-import os
 
-from PIL import Image
 from brisque import BRISQUE as Btisque
 from numpy import asarray
+from PIL import Image
 from tqdm.asyncio import tqdm
 
 from .utils import chunkify

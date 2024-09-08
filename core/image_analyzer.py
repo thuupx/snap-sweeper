@@ -2,8 +2,8 @@ import asyncio
 import queue
 import sys
 import time
-from typing import Any, List
 from pathlib import Path
+from typing import Any, List
 
 import chromadb
 from chromadb.api.types import IncludeEnum
@@ -145,8 +145,14 @@ class ImageAnalyzer:
         for corpus_start_idx in range(0, len(embeddings), corpus_chunk_size):
             for query_start_idx in range(0, len(embeddings), query_chunk_size):
                 scores = util.cos_sim(
-                    embeddings[query_start_idx : query_start_idx + query_chunk_size],
-                    embeddings[corpus_start_idx : corpus_start_idx + corpus_chunk_size],
+                    torch.tensor(
+                        embeddings[query_start_idx : query_start_idx + query_chunk_size]
+                    ),
+                    torch.tensor(
+                        embeddings[
+                            corpus_start_idx : corpus_start_idx + corpus_chunk_size
+                        ]
+                    ),
                 )
 
                 scores_top_k_values, scores_top_k_idx = torch.topk(
