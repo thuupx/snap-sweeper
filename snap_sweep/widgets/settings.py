@@ -10,7 +10,8 @@ class SettingsWidget(ctk.CTkFrame):
         self.threshold = IntVar(value=90)
         self.top_k = IntVar(value=2)
         self.should_move_images = BooleanVar(value=False)
-        self.sub_folder_name = StringVar(value="DISCARDED")
+        self.sub_folder_name = StringVar(value="LOW_QUALITY_IMAGES")
+        self.image_thumbnail_size = IntVar(value=512)
 
         self.should_move_images.trace_add("write", self.on_dry_run_changed)
         self.setup_ui()
@@ -56,40 +57,30 @@ class SettingsWidget(ctk.CTkFrame):
         # Top-k input and label
         self.top_k_label = ctk.CTkLabel(master=self, text="Top-k:")
         self.top_k_label.grid(row=1, column=1, padx=5, pady=5, sticky="w")
-        self.top_k_input = ctk.CTkEntry(master=self, textvariable=self.top_k)
+        self.top_k_input = ctk.CTkEntry(master=self, textvariable=self.top_k, width=170)
         self.top_k_input.grid(row=1, column=2, padx=5, pady=5, sticky="w")
-
-        # checkbox to dertermine if we want to move the images or not
-        # self.move_images_checkbox = ctk.CTkCheckBox(
-        #     master=self,
-        #     text="",
-        #     variable=self.should_move_images,
-        #     onvalue=True,
-        #     offvalue=False,
-        # )
-        # self.move_images_checkbox_label = ctk.CTkLabel(
-        #     master=self, text="Should move low quality images to trash?"
-        # )
-        # self.move_images_checkbox_label.grid(
-        #     row=2, column=1, padx=5, pady=5, sticky="w"
-        # )
-        # self.move_images_checkbox.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
         # sub folder name input and label
         self.sub_folder_name_label = ctk.CTkLabel(
             master=self, text="Temporary trash folder name:"
         )
-        self.sub_folder_name_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        self.sub_folder_name_label.grid(row=2, column=1, padx=5, pady=5, sticky="w")
         self.sub_folder_name_input = ctk.CTkEntry(
-            master=self, textvariable=self.sub_folder_name
+            master=self, textvariable=self.sub_folder_name, width=170
         )
-        self.sub_folder_name_input.grid(row=3, column=2, padx=5, pady=5, sticky="w")
-
-        description_text = (
-            "Low quality images will be moved to temporary folder inside the image folder."
-            if self.should_move_images.get()
-            else ""
+        self.sub_folder_name_input.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+        # Image thumbnail input and label
+        self.image_thumbnail_label = ctk.CTkLabel(
+            master=self, text="Preview image size (px):"
         )
+        self.image_thumbnail_label.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        self.image_thumbnail_input = ctk.CTkEntry(
+            master=self,
+            textvariable=self.image_thumbnail_size,
+            width=170,
+        )
+        self.image_thumbnail_input.grid(row=3, column=2, padx=5, pady=5, sticky="w")
+        description_text = "Reduce the size if you are experiencing performance issues."
 
         self.description_text = ctk.CTkLabel(
             master=self,
@@ -106,7 +97,21 @@ class SettingsWidget(ctk.CTkFrame):
             padx=5,
             pady=5,
             sticky="w",
-        )
+        )  # checkbox to dertermine if we want to move the images or not
+        # self.move_images_checkbox = ctk.CTkCheckBox(
+        #     master=self,
+        #     text="",
+        #     variable=self.should_move_images,
+        #     onvalue=True,
+        #     offvalue=False,
+        # )
+        # self.move_images_checkbox_label = ctk.CTkLabel(
+        #     master=self, text="Should move low quality images to trash?"
+        # )
+        # self.move_images_checkbox_label.grid(
+        #     row=2, column=1, padx=5, pady=5, sticky="w"
+        # )
+        # self.move_images_checkbox.grid(row=2, column=2, padx=5, pady=5, sticky="w")
 
     def on_threshold_changed(self, *args) -> None:
         self.threshold_value_label.configure(text=f"{self.threshold.get():.1f}%")
@@ -127,4 +132,8 @@ class SettingsWidget(ctk.CTkFrame):
             "top_k": self.top_k.get(),
             "dry_run": not self.should_move_images.get(),
             "sub_folder_name": self.sub_folder_name.get(),
+            "thumbnail_size": self.image_thumbnail_size.get(),
         }
+
+    def set_thumbnail_size(self, size: int):
+        self.image_thumbnail_size.set(size)

@@ -10,7 +10,7 @@ LOAD_MORE_BUTTON_TEXT = "Load More"
 
 
 class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
-    def __init__(self, master: ctk.CTkFrame):
+    def __init__(self, master: ctk.CTkFrame, custom_thumbnail_size: int = 512):
         super().__init__(master)
         self.master = master
         self.master.anchor(ctk.CENTER)
@@ -18,6 +18,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         self.image_queue = queue.Queue()
         self.current_chunk = 0
         self.total_items = 0
+        self.custom_thumbnail_size = custom_thumbnail_size
         self.setup_ui()
         self.bind("<MouseWheel>", self.on_mouse_wheel)
 
@@ -30,10 +31,14 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         # Add labels for "Best Image" and "Worst Image"
-        best_label = ctk.CTkLabel(self, text="Best Image", font=("Arial", 16, "bold"))
+        best_label = ctk.CTkLabel(
+            self, text="High quality images", font=("Arial", 16, "bold")
+        )
         best_label.grid(row=0, column=0, padx=5, pady=(5, 10))
 
-        worst_label = ctk.CTkLabel(self, text="Worst Image", font=("Arial", 16, "bold"))
+        worst_label = ctk.CTkLabel(
+            self, text="Low quality images", font=("Arial", 16, "bold")
+        )
         worst_label.grid(row=0, column=1, padx=5, pady=(5, 10))
 
         # Reset chunk
@@ -70,7 +75,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         else:
             thumbnail_size = height // 2 - padding - scrollbar_width
 
-        thumbnail_size = max(thumbnail_size, 384)
+        thumbnail_size = min(thumbnail_size, self.custom_thumbnail_size, 512)
 
         best_image = ImageOps.exif_transpose(best_image) or best_image
         worst_image = ImageOps.exif_transpose(worst_image) or worst_image
@@ -159,9 +164,11 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             columnspan=2,
             padx=5,
             pady=5,
-            # sticky="ew",
         )
 
     def on_image_clicked(self, event: Any, ctk_image: ctk.CTkImage):
         image: Image.Image = ctk_image.cget("light_image")
         image.show()
+
+    def set_thumbnail_size(self, size: int):
+        self.custom_thumbnail_size = size

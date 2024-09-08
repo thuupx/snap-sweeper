@@ -39,7 +39,16 @@ class UIManager:
         self.output_widget = OutputWidget(master=right_frame)
         self.output_widget.pack(side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10)
 
-        self.preview_widget = DuplicatePreviewWidget(master=left_frame)
+        self.preview_widget = DuplicatePreviewWidget(
+            master=left_frame,
+            custom_thumbnail_size=self.settings_widget.image_thumbnail_size.get(),
+        )
+        self.settings_widget.image_thumbnail_size.trace_add(
+            "write",
+            lambda *args: self.preview_widget.set_thumbnail_size(
+                self.settings_widget.image_thumbnail_size.get()
+            ),
+        )
 
         self.sweep_button = ctk.CTkButton(
             right_frame,

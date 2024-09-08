@@ -38,6 +38,7 @@ class SnapSweepApp:
     async def process_images(self) -> None:
         try:
             settings = self.ui_manager.settings_widget.get_settings()
+            print(settings)
             image_dir = self.ui_manager.select_folder_widget.image_dir.get()
             results, discarded_images, error = await self.sweeper.process_images(
                 image_dir, settings
