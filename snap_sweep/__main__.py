@@ -4,8 +4,8 @@ from tkinter import PhotoImage
 
 import customtkinter as ctk
 
-from snap_sweep.snap_sweep_app import SnapSweepApp
 from snap_sweep.app_manager import AppManager
+from snap_sweep.snap_sweep_app import SnapSweepApp
 
 
 class SnapSweepLauncher:
@@ -39,6 +39,7 @@ class SnapSweepLauncher:
     def run(self):
         if self.app_manager.is_already_running():
             print("SnapSweep is already running.")
+            self.app_manager.cleanup_lock_file()
             sys.exit(1)
 
         self.create_app()

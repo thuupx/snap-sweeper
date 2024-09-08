@@ -27,6 +27,14 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             widget.destroy()
 
         self.configure(height=len(self.duplicates) * 64 + 100)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        # Add labels for "Best Image" and "Worst Image"
+        best_label = ctk.CTkLabel(self, text="Best Image", font=("Arial", 16, "bold"))
+        best_label.grid(row=0, column=0, padx=5, pady=(5, 10))
+
+        worst_label = ctk.CTkLabel(self, text="Worst Image", font=("Arial", 16, "bold"))
+        worst_label.grid(row=0, column=1, padx=5, pady=(5, 10))
 
         # Reset chunk
         self.current_chunk = 0
@@ -51,22 +59,24 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         best_image = Image.open(duplicate[0])
         worst_image = Image.open(duplicate[1])
 
-        thumnail_size = 512
+        thumbnail_size = 512
         padding = 10 * 2
         master = self.master
         width = master.winfo_width()
         height = master.winfo_height()
         scrollbar_width = self._scrollbar.winfo_width()
         if width > height:
-            thumnail_size = width // 2 - padding - scrollbar_width
+            thumbnail_size = width // 2 - padding - scrollbar_width
         else:
-            thumnail_size = height // 2 - padding - scrollbar_width
+            thumbnail_size = height // 2 - padding - scrollbar_width
+
+        thumbnail_size = max(thumbnail_size, 384)
 
         best_image = ImageOps.exif_transpose(best_image) or best_image
         worst_image = ImageOps.exif_transpose(worst_image) or worst_image
 
-        best_image.thumbnail((thumnail_size, thumnail_size))
-        worst_image.thumbnail((thumnail_size, thumnail_size))
+        best_image.thumbnail((thumbnail_size, thumbnail_size))
+        worst_image.thumbnail((thumbnail_size, thumbnail_size))
 
         left_image_size = best_image.size
         right_image_size = worst_image.size
@@ -98,7 +108,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                     "<Button-1>",
                     lambda event: self.on_image_clicked(event, image_left),
                 )
-                self.left_label.grid(row=i, column=0, padx=5, pady=5)
+                self.left_label.grid(row=i + 1, column=0, padx=5, pady=5)
 
                 self.right_label = ctk.CTkLabel(
                     master=self, image=image_right, text="", cursor="pointinghand"
@@ -107,7 +117,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                     "<Button-1>",
                     lambda event: self.on_image_clicked(event, image_right),
                 )
-                self.right_label.grid(row=i, column=1, padx=5, pady=5)
+                self.right_label.grid(row=i + 1, column=1, padx=5, pady=5)
         except queue.Empty:
             pass
         finally:
@@ -141,13 +151,15 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             master=self,
             text=LOAD_MORE_BUTTON_TEXT,
             command=self.load_next_chunk,
+            width=200,
         )
         load_more_button.grid(
-            row=self.current_chunk * CHUNK_SIZE,
+            row=self.current_chunk * CHUNK_SIZE + 1,
+            column=0,
             columnspan=2,
             padx=5,
             pady=5,
-            sticky="ew",
+            # sticky="ew",
         )
 
     def on_image_clicked(self, event: Any, ctk_image: ctk.CTkImage):
