@@ -34,6 +34,7 @@ class SnapSweepLauncher:
 
     def setup_app(self):
         self.app.setup_ui()
+        self.app.setup_event_loop()
 
     def run(self):
         if self.app_manager.is_already_running():

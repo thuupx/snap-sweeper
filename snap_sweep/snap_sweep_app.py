@@ -13,11 +13,8 @@ class SnapSweepApp:
     def __init__(self, root: ctk.CTk):
         self.root: ctk.CTk = root
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-
         self.ui_manager: UIManager = UIManager(root)
         self.sweeper: SnapSweeper = SnapSweeper()
-
-        self.ensure_asyncio_event_loop()
 
     def setup_ui(self) -> None:
         self.ui_manager.setup_ui()
@@ -88,11 +85,10 @@ class SnapSweepApp:
         self.ui_manager.sweep_button.configure(state=ctk.DISABLED)
 
     def cancel_sweep(self) -> None:
-        print("Cancelled")
         self.ui_manager.sweep_button.configure(state=ctk.NORMAL)
         self.ui_manager.btn_scan.configure(state=ctk.NORMAL)
 
-    def ensure_asyncio_event_loop(self) -> None:
+    def setup_event_loop(self) -> None:
         if not self.loop.is_running():
             t = threading.Thread(target=self._run_event_loop, daemon=True)
             t.start()
