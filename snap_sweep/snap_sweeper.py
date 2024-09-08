@@ -1,7 +1,7 @@
-from find_duplicate_images.core.find_and_move_similar_images import (
+from core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
-from find_duplicate_images.core.utils import move_files_to_subdir
+from core.utils import move_files_to_subdir
 
 
 class SnapSweeper:

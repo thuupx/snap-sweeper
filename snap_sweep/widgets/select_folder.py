@@ -1,6 +1,5 @@
 import os
 from tkinter import StringVar, filedialog
-from typing import Callable
 from typing_extensions import Any
 import customtkinter as ctk
 

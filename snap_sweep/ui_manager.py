@@ -45,7 +45,7 @@ class UIManager:
             right_frame,
             text="Start Sweep",
             fg_color="#ef4444",
-            hover_color="#f87171",
+            hover_color="#dc2626",
         )
         self.sweep_button.configure(state=ctk.DISABLED)
         self.sweep_button.pack(side=ctk.BOTTOM, padx=10, pady=(0, 10))

@@ -1,4 +1,4 @@
-from find_duplicate_images.core.find_and_move_similar_images import (
+from core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
 

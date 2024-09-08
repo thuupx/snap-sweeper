@@ -1,7 +1,7 @@
 import time
-from find_duplicate_images.core.image_analyzer import ImageAnalyzer
-from find_duplicate_images.core.image_quality_comparator import ImageQualityComparator
-from find_duplicate_images.core.utils import (
+from .image_analyzer import ImageAnalyzer
+from .image_quality_comparator import ImageQualityComparator
+from .utils import (
     get_image_files,
     move_files_to_subdir,
 )
