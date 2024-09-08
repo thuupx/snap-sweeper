@@ -39,6 +39,8 @@ class OutputWidget(ctk.CTkFrame):
 
         self.output_text = ctk.CTkTextbox(
             master=self,
+            fg_color="#1f2937",
+            text_color="#fafafa",
         )
         self.output_text.configure(state=ctk.DISABLED)
         self.output_text.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")

@@ -105,7 +105,7 @@ class ImageAnalyzer:
                     progress_bar.update(len(chunk))
             print("Embeddings created in %.2f seconds" % (time.time() - start_time))
         else:
-            print("All image's embeddings already exist in the database. Skipping...")
+            print("All images are already embedded.")
 
     @staticmethod
     def paraphrase_mining_embeddings(

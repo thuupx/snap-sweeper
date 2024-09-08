@@ -1,78 +1,60 @@
 import os
 import sys
-import tempfile
-import atexit
-import signal
 from tkinter import PhotoImage
 
 import customtkinter as ctk
 
 from snap_sweep.snap_sweep_app import SnapSweepApp
+from snap_sweep.app_manager import AppManager
 
 
-def create_app():
-    ctk.set_appearance_mode("system")
-    ctk.set_default_color_theme(
-        os.path.join(os.path.dirname(__file__), "resources", "sky.json")
-    )
+class SnapSweepLauncher:
+    def __init__(self):
+        self.app_manager = AppManager()
 
-    root = ctk.CTk()
-    icon_path = os.path.join(os.path.dirname(__file__), "resources", "icon.png")
-    img = PhotoImage(file=icon_path)
-    root.wm_iconphoto(True, img)
+    def create_app(self):
+        ctk.set_appearance_mode("system")
+        ctk.set_default_color_theme(
+            os.path.join(os.path.dirname(__file__), "resources", "sky.json")
+        )
 
-    root.title("Smart Snap Sweep")
-    root.geometry("1600x1024")
-    # Configure the grid system
-    root.grid_rowconfigure(0, weight=1)
-    root.grid_columnconfigure(0, weight=1)
-    root.grid_columnconfigure(1, weight=0)
+        self.root = ctk.CTk()
+        icon_path = os.path.join(os.path.dirname(__file__), "resources", "icon.png")
+        img = PhotoImage(file=icon_path)
+        self.root.wm_iconphoto(True, img)
 
-    app = SnapSweepApp(root)
+        self.root.title("Smart Snap Sweep")
+        self.root.geometry("1600x1024")
+        # Configure the grid system
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=0)
 
-    return root, app
+        self.app = SnapSweepApp(self.root)
 
+    def setup_app(self):
+        self.app.setup_ui()
 
-def is_already_running():
-    temp_dir = tempfile.gettempdir()
-    lock_file = os.path.join(temp_dir, "snap_sweep.lock")
+    def run(self):
+        if self.app_manager.is_already_running():
+            print("SnapSweep is already running.")
+            sys.exit(1)
 
-    if os.path.exists(lock_file):
-        return True
+        self.create_app()
+        self.setup_app()
+        self.app_manager.setup_signals(self.root, self.app, self.on_closing)
+        self.root.mainloop()
 
-    with open(lock_file, "w") as f:
-        f.write(str(os.getpid()))
-
-    return False
-
-
-def cleanup_lock_file():
-    try:
-        os.remove(os.path.join(tempfile.gettempdir(), "snap_sweep.lock"))
-    except FileNotFoundError:
-        pass
+    def on_closing(self):
+        self.app.cleanup()
+        self.root.destroy()
+        self.app_manager.cleanup_lock_file()
+        sys.exit(0)
 
 
 def main():
-    if is_already_running():
-        print("SnapSweep is already running.")
-        sys.exit(1)
-
-    root, app = create_app()
-    app.setup_ui()
-
-    def on_closing():
-        app.cleanup()
-        root.destroy()
-        cleanup_lock_file()
-        sys.exit(0)
-
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-    atexit.register(cleanup_lock_file)
-    signal.signal(signal.SIGINT, lambda sig, frame: on_closing())
-    signal.signal(signal.SIGTERM, lambda sig, frame: on_closing())
-
-    root.mainloop()
+    launcher = SnapSweepLauncher()
+    launcher.run()
 
 
 if __name__ == "__main__":
