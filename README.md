@@ -89,4 +89,4 @@ To execute the duplicate image finder script:
 
 To build the desktop UI, use pyinstaller with the provided spec file:
 
-`pyinstaller ./snap_sweep.spec --noconfirm`
+`pyinstaller --noconfirm --clean ./snap_sweep.spec`

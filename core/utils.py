@@ -2,24 +2,13 @@ import asyncio
 import os
 from functools import lru_cache
 from shutil import copyfile, move
+from PIL import Image
 from filetype import is_image
 
 
 def chunkify(lst, chunk_size=20):
     for i in range(0, len(lst), chunk_size):
         yield lst[i : i + chunk_size]
-
-
-@lru_cache(maxsize=None)
-def memorize_imread(filepath, flags=None):
-    """
-    Reads an image from a file using OpenCV, with memoization.
-    """
-    import cv2
-
-    flags = flags or cv2.IMREAD_COLOR
-
-    return cv2.imread(filepath, flags)
 
 
 def copy_file(file_path: str, dest_folder: str):

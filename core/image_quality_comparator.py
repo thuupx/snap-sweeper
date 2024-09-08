@@ -3,12 +3,12 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 import os
 
-import cv2
+from PIL import Image
 from brisque import BRISQUE as Btisque
 from numpy import asarray
 from tqdm.asyncio import tqdm
 
-from .utils import chunkify, memorize_imread
+from .utils import chunkify
 
 
 class ImageQualityComparator:
@@ -21,15 +21,14 @@ class ImageQualityComparator:
         self.scoring_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
         self.quality_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 
-    def get_np_array(self, img_path, pixel_x=64, pixel_y=64):
-        img = memorize_imread(img_path)
-        cvt = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        resized = cv2.resize(cvt, (pixel_x, pixel_y))
+    def get_numpy_array(self, img_path, pixel_x=64, pixel_y=64):
+        img = Image.open(img_path)
+        resized = img.resize((pixel_x, pixel_y))
         ndarray = asarray(resized)
         return ndarray
 
     def compute_quality_score(self, img_path: str) -> float:
-        np_array = self.get_np_array(img_path)
+        np_array = self.get_numpy_array(img_path)
         with self.lock:
             score = self.scoring_executor.submit(Btisque(url=False).score, img=np_array)
             score = score.result()
