@@ -6,13 +6,13 @@ import psutil
 import time
 from typing import Callable, Optional
 
-from snap_sweep.snap_sweep_app import SnapSweepApp
+from snap_sweeper.snap_sweeper_app import SnapSweeperApp
 
 
 class AppManager:
     def __init__(self):
-        self.app: Optional[SnapSweepApp] = None
-        self.lock_file: str = os.path.join(tempfile.gettempdir(), "snap_sweep.lock")
+        self.app: Optional[SnapSweeperApp] = None
+        self.lock_file: str = os.path.join(tempfile.gettempdir(), "snap_sweeper.lock")
 
     def is_already_running(self) -> bool:
         if os.path.exists(self.lock_file):
@@ -34,7 +34,7 @@ class AppManager:
 
         return False
 
-    def setup_signals(self, root, app: SnapSweepApp, on_closing: Callable[[], None]):
+    def setup_signals(self, root, app: SnapSweeperApp, on_closing: Callable[[], None]):
         self.app = app
         root.protocol("WM_DELETE_WINDOW", on_closing)
         atexit.register(self.cleanup_lock_file)

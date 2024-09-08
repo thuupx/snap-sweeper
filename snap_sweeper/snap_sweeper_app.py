@@ -9,7 +9,7 @@ from .snap_sweeper import SnapSweeper
 from .ui_manager import UIManager
 
 
-class SnapSweepApp:
+class SnapSweeperApp:
     def __init__(self, root: ctk.CTk):
         self.root: ctk.CTk = root
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()

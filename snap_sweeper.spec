@@ -10,7 +10,7 @@ brisque_datas, brisque_binaries, brisque_hiddenimports = collect_all("brisque")
 ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
 
 a = Analysis(
-    ["snap_sweep/__main__.py"],
+    ["snap_sweeper/__main__.py"],
     pathex=[os.path.abspath(os.curdir)],  # Ensure the current directory is in the path
     binaries=[
         *libsvm_binaries,
@@ -19,7 +19,7 @@ a = Analysis(
     ],
     datas=[
         (ctk_data, "customtkinter/"),
-        ("snap_sweep/resources", "resources/"),
+        ("snap_sweeper/resources", "resources/"),
         *libsvm_datas,
         *chromadb_datas,
         *brisque_datas,
@@ -28,8 +28,8 @@ a = Analysis(
         *libsvm_hiddenimports,
         *chromadb_hiddenimports,
         *brisque_hiddenimports,
-        "snap_sweep",
-        "snap_sweep.snap_sweep_app",
+        "snap_sweeper",
+        "snap_sweeper.snap_sweeper_app",
     ],
     hookspath=[],
     hooksconfig={},
@@ -59,7 +59,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon="snap_sweep/resources/icon.ico",
+    icon="snap_sweeper/resources/icon.ico",
 )
 coll = COLLECT(
     exe,
@@ -74,5 +74,5 @@ app = BUNDLE(
     coll,
     name="SnapSweep.app",
     bundle_identifier=None,
-    icon="snap_sweep/resources/icon.icns",
+    icon="snap_sweeper/resources/icon.icns",
 )

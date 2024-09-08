@@ -4,11 +4,11 @@ from tkinter import PhotoImage
 
 import customtkinter as ctk
 
-from snap_sweep.app_manager import AppManager
-from snap_sweep.snap_sweep_app import SnapSweepApp
+from snap_sweeper.app_manager import AppManager
+from snap_sweeper.snap_sweeper_app import SnapSweeperApp
 
 
-class SnapSweepLauncher:
+class SnapSweeperLauncher:
     def __init__(self):
         self.app_manager = AppManager()
 
@@ -30,7 +30,7 @@ class SnapSweepLauncher:
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=0)
 
-        self.app = SnapSweepApp(self.root)
+        self.app = SnapSweeperApp(self.root)
 
     def setup_app(self):
         self.app.setup_ui()
@@ -55,7 +55,7 @@ class SnapSweepLauncher:
 
 
 def main():
-    launcher = SnapSweepLauncher()
+    launcher = SnapSweeperLauncher()
     launcher.run()
 
 
@@ -65,6 +65,6 @@ if __name__ == "__main__":
     if app_env != "production":
         from hupper import start_reloader
 
-        reloader = start_reloader("snap_sweep.__main__.main")
+        reloader = start_reloader("snap_sweeper.__main__.main")
     else:
         main()

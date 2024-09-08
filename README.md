@@ -1,8 +1,8 @@
-# Snap Sweep - Image Duplicate Finder
+# Snap Sweeper - Image Duplicate Finder
 
 ## Overview
 
-Snap Sweep - The Image Duplicate Finder aims to provide a robust solution for identifying and managing duplicate images within large datasets. By detecting redundant images, Snap Sweep helps optimize storage usage and streamline image organization, which is essential for both professional and personal use cases.
+Snap Sweeper - The Image Duplicate Finder aims to provide a robust solution for identifying and managing duplicate images within large datasets. By detecting redundant images, Snap Sweeper helps optimize storage usage and streamline image organization, which is essential for both professional and personal use cases.
 
 Leveraging advanced image processing techniques, the tool offers a command-line interface for automation and a desktop UI for ease of use, supporting almost all image formats.
 
@@ -27,11 +27,11 @@ Leveraging advanced image processing techniques, the tool offers a command-line 
 
 To find and eliminate duplicate images in a directory, you can use the script as follows:
 
-`python -m snap_sweep_cli.py --dir <path_to_directory>`
+`python -m snap_sweeper_cli.py --dir <path_to_directory>`
 
 For more help on usage:
 
-`python -m snap_sweep_cli -h`
+`python -m snap_sweeper_cli -h`
 
 You can also use the desktop UI to find and eliminate duplicate images with easy to understand interface.
 
@@ -83,10 +83,10 @@ Install the required Python packages:
 
 To execute the duplicate image finder script:
 
-`python3 -m snap_sweep_cli`
+`python3 -m snap_sweeper_cli`
 
 ## Building the Desktop UI
 
 To build the desktop UI, use pyinstaller with the provided spec file:
 
-`pyinstaller --noconfirm --clean ./snap_sweep.spec`
+`pyinstaller --noconfirm --clean ./snap_sweeper.spec`
