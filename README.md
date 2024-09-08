@@ -27,11 +27,11 @@ Leveraging advanced image processing techniques, the tool offers a command-line 
 
 To find and eliminate duplicate images in a directory, you can use the script as follows:
 
-`python find_duplicate_images.py --dir <path_to_directory>`
+`python -m snap_sweep_cli.py --dir <path_to_directory>`
 
 For more help on usage:
 
-`python -m find_duplicate_images -h`
+`python -m snap_sweep_cli -h`
 
 You can also use the desktop UI to find and eliminate duplicate images with easy to understand interface.
 
@@ -83,7 +83,7 @@ Install the required Python packages:
 
 To execute the duplicate image finder script:
 
-`python3 -m find_duplicate_images`
+`python3 -m snap_sweep_cli`
 
 ## Building the Desktop UI
 
