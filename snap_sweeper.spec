@@ -11,7 +11,7 @@ ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
 
 a = Analysis(
     ["snap_sweeper/__main__.py"],
-    pathex=[os.path.abspath(os.curdir)],  # Ensure the current directory is in the path
+    pathex=[os.path.abspath(os.curdir)],
     binaries=[
         *libsvm_binaries,
         *chromadb_binaries,
@@ -30,6 +30,7 @@ a = Analysis(
         *brisque_hiddenimports,
         "snap_sweeper",
         "snap_sweeper.snap_sweeper_app",
+        "snap_sweeper.app_manager",
     ],
     hookspath=[],
     hooksconfig={},
@@ -48,7 +49,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="SnapSweep",
+    name="Snap Sweeper",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -68,11 +69,11 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="SnapSweep",
+    name="Snap Sweeper",
 )
 app = BUNDLE(
     coll,
-    name="SnapSweep.app",
+    name="Snap Sweeper.app",
     bundle_identifier=None,
     icon="snap_sweeper/resources/icon.icns",
 )

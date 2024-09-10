@@ -1,4 +1,6 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import os
 from functools import lru_cache
 from shutil import copyfile, move
@@ -106,3 +108,50 @@ async def move_files_to_subdir(files: list[str], dest_subfolder: str):
     """
     tasks = [async_move_file_to_subdir(file, dest_subfolder) for file in files]
     await asyncio.gather(*tasks)
+
+
+async def calculate_file_hash(file_path: str) -> dict[str, str]:
+    """
+    Calculate the hash of a file's contents asynchronously.
+
+    Parameters:
+        file_path (str): The path to the file.
+    """
+
+    def _hash_file():
+        hasher = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                hasher.update(chunk)
+        return {"path": file_path, "hash": hasher.hexdigest()}
+
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _hash_file)
+
+
+async def calculate_file_hashes(file_paths: list[str], max_workers: int | None = None):
+    """
+    Calculate the hash of files asynchronously.
+
+    Parameters:
+        file_paths (list[str]): The paths to the files.
+        max_workers (int | None): Maximum number of worker threads.
+
+    Returns:
+        dict[str, str]: A dictionary with the file paths as keys and the hashes as values.
+    """
+    max_workers = max_workers or (os.cpu_count() or 4) * 2
+
+    results: dict[str, str] = {}
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        loop = asyncio.get_running_loop()
+        tasks = [
+            loop.run_in_executor(executor, calculate_file_hash, file_path)
+            for file_path in file_paths
+        ]
+        hashed_results = await asyncio.gather(*tasks)
+        for coroutine in hashed_results:
+            result = await coroutine
+            results[result["path"]] = result["hash"]
+    return results

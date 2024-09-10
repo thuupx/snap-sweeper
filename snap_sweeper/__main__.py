@@ -23,7 +23,7 @@ class SnapSweeperLauncher:
         img = PhotoImage(file=icon_path)
         self.root.wm_iconphoto(True, img)
 
-        self.root.title("Smart Snap Sweep")
+        self.root.title("Snap Sweeper")
         self.root.geometry("1600x1024")
         # Configure the grid system
         self.root.grid_rowconfigure(0, weight=1)
@@ -38,7 +38,7 @@ class SnapSweeperLauncher:
 
     def run(self):
         if self.app_manager.is_already_running():
-            print("SnapSweep is already running.")
+            print("Snap Sweeper is already running.")
             self.app_manager.cleanup_lock_file()
             sys.exit(1)
 

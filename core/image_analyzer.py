@@ -1,7 +1,9 @@
 import asyncio
+import os
 import queue
 import sys
 import time
+from math import ceil
 from pathlib import Path
 from typing import Any, List
 
@@ -14,7 +16,7 @@ from PIL import Image
 from sentence_transformers import util
 from tqdm.asyncio import tqdm
 
-from .utils import chunkify
+from .utils import calculate_file_hashes, chunkify
 
 MODEL_NAME = "clip-ViT-B-32"
 DB_PATH_NAME = "database"
@@ -41,7 +43,7 @@ class ImageAnalyzer:
         return image
 
     @staticmethod
-    async def _async_load_images(batch_paths: list[str]):
+    async def _async_load_images(batch_paths: list[str]) -> list[Any]:
         images = await asyncio.gather(
             *[ImageAnalyzer._load_image(path) for path in batch_paths]
         )
@@ -49,6 +51,9 @@ class ImageAnalyzer:
 
     @staticmethod
     def _get_database_path():
+        if os.environ.get("APP_ENV") != "production":
+            return "./" + DB_PATH_NAME
+
         if getattr(sys, "frozen", False):
             # Running as compiled application
             app_path = Path(sys.executable).parent.parent
@@ -78,26 +83,59 @@ class ImageAnalyzer:
         Parameters:
             image_paths (list[str]): A list of image paths to add to the database.
         """
-        images: List[Any] = await ImageAnalyzer._async_load_images(image_paths)
+        images, path_hash_mapping = await asyncio.gather(
+            ImageAnalyzer._async_load_images(image_paths),
+            calculate_file_hashes(image_paths),
+        )
+
+        print("Hashed", path_hash_mapping)
+
         self.collection.add(
             ids=image_paths,
             images=images,
-            metadatas=[{"path": path} for path in image_paths],
+            metadatas=[
+                {
+                    "path": path,
+                    "hash": path_hash_mapping[path],
+                }
+                for path in image_paths
+            ],
         )
 
     async def create_embeddings_if_not_exist(self, image_paths: list[str]):
         """
         Creates embeddings for the given image paths if they don't already exist in the database.
         """
-        current_image_paths = self.collection.get(ids=image_paths)["ids"]
-        image_paths = [path for path in image_paths if path not in current_image_paths]
+        path_hash_mapping = await calculate_file_hashes(image_paths)
+
+        existing_image_paths = self.collection.get(
+            where={"hash": {"$in": list(path_hash_mapping.values())}}
+        )["ids"]
+
+        moved_image_paths = [
+            path
+            for path in image_paths
+            if path not in existing_image_paths and path_hash_mapping[path] != path
+        ]
+
+        if len(moved_image_paths) > 0:
+            self.collection.delete(
+                where={
+                    "hash": {
+                        "$in": [path_hash_mapping[path] for path in moved_image_paths]
+                    }
+                }
+            )
+
+        image_paths = [path for path in image_paths if path not in existing_image_paths]
+
         if len(image_paths) > 0:
             print(f"Creating embeddings for {len(image_paths)} images...")
             start_time = time.time()
             with tqdm(
                 total=len(image_paths), desc="Creating embeddings"
             ) as progress_bar:
-                CHUNK_SIZE = len(image_paths) % 10
+                CHUNK_SIZE = ceil(len(image_paths) / 10)
                 print(f"Chunk size: {CHUNK_SIZE}")
                 for chunk in chunkify(image_paths, chunk_size=CHUNK_SIZE):
                     tasks = [self.add_images(chunk)]
