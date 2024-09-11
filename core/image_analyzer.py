@@ -76,72 +76,61 @@ class ImageAnalyzer:
         db_path.mkdir(parents=True, exist_ok=True)
         return str(db_path)
 
-    async def add_images(self, image_paths: list[str]):
+    async def upsert_images(
+        self, image_paths: list[str], path_hash_mapping: dict[str, str]
+    ):
         """
         Adds the given image paths to the database.
 
         Parameters:
             image_paths (list[str]): A list of image paths to add to the database.
+            path_hash_mapping (dict[str, str]): A dictionary mapping image paths to their hash values.
         """
-        images, path_hash_mapping = await asyncio.gather(
-            ImageAnalyzer._async_load_images(image_paths),
-            calculate_file_hashes(image_paths),
-        )
+        images = await ImageAnalyzer._async_load_images(image_paths)
+        image_hashes = [path_hash_mapping[path] for path in image_paths]
 
-        print("Hashed", path_hash_mapping)
-
-        self.collection.add(
-            ids=image_paths,
+        self.collection.upsert(
+            ids=image_hashes,
             images=images,
             metadatas=[
                 {
                     "path": path,
-                    "hash": path_hash_mapping[path],
                 }
                 for path in image_paths
             ],
         )
 
-    async def create_embeddings_if_not_exist(self, image_paths: list[str]):
+    async def create_embeddings_if_not_exist(self, path_hash_mapping: dict[str, str]):
         """
         Creates embeddings for the given image paths if they don't already exist in the database.
         """
-        path_hash_mapping = await calculate_file_hashes(image_paths)
 
-        existing_image_paths = self.collection.get(
-            where={"hash": {"$in": list(path_hash_mapping.values())}}
-        )["ids"]
+        image_ids = list(path_hash_mapping.values())
 
-        moved_image_paths = [
+        existing_hashes = self.collection.get(ids=image_ids)["ids"]
+
+        new_image_paths = [
             path
-            for path in image_paths
-            if path not in existing_image_paths and path_hash_mapping[path] != path
+            for path, hash_value in path_hash_mapping.items()
+            if hash_value not in existing_hashes
         ]
 
-        if len(moved_image_paths) > 0:
-            self.collection.delete(
-                where={
-                    "hash": {
-                        "$in": [path_hash_mapping[path] for path in moved_image_paths]
-                    }
-                }
-            )
-
-        image_paths = [path for path in image_paths if path not in existing_image_paths]
-
-        if len(image_paths) > 0:
-            print(f"Creating embeddings for {len(image_paths)} images...")
+        if len(new_image_paths) > 0:
+            print(f"Creating embeddings for {len(new_image_paths)} images...")
             start_time = time.time()
             with tqdm(
-                total=len(image_paths), desc="Creating embeddings"
+                total=len(new_image_paths), desc="Creating embeddings"
             ) as progress_bar:
-                CHUNK_SIZE = ceil(len(image_paths) / 10)
-                print(f"Chunk size: {CHUNK_SIZE}")
-                for chunk in chunkify(image_paths, chunk_size=CHUNK_SIZE):
-                    tasks = [self.add_images(chunk)]
-                    await asyncio.gather(*tasks)
+                CHUNK_SIZE = ceil(len(new_image_paths) / 10)
+                total_new_embeddings = 0
+                for chunk in chunkify(new_image_paths, chunk_size=CHUNK_SIZE):
+                    await self.upsert_images(chunk, path_hash_mapping)
+                    total_new_embeddings += len(chunk)
                     progress_bar.update(len(chunk))
-            print("Embeddings created in %.2f seconds" % (time.time() - start_time))
+            print(
+                f"Created embeddings for {total_new_embeddings} images in {time.time() - start_time:.2f} seconds"
+            )
+
         else:
             print("All images are already embedded.")
 
@@ -236,8 +225,12 @@ class ImageAnalyzer:
         pairs_list = sorted(pairs_list, key=lambda x: x[0], reverse=True)
         return pairs_list
 
-    def similarity_search(
-        self, image_paths: list[str], top_k=10, limit: int | None = None, threshold=0.9
+    async def similarity_search(
+        self,
+        path_hash_mapping: dict[str, str],
+        top_k=10,
+        limit: int | None = None,
+        threshold=0.9,
     ) -> List[tuple[float, str, str]]:
         """
         Search for near duplicates using the given image embeddings.
@@ -250,8 +243,9 @@ class ImageAnalyzer:
         Returns:
             list: A list of tuples containing the similarity score, the paths of the two images.
         """
+        image_hashes = list(path_hash_mapping.values())
         all_docs = self.collection.get(
-            ids=image_paths,
+            ids=image_hashes,
             limit=limit,
             include=[IncludeEnum.embeddings, IncludeEnum.metadatas],
         )

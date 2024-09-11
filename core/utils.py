@@ -4,9 +4,7 @@ import hashlib
 import os
 from functools import lru_cache
 from shutil import copyfile, move
-from typing import Literal
 
-import torch
 from filetype import is_image
 
 

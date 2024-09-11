@@ -2,6 +2,7 @@ import time
 from .image_analyzer import ImageAnalyzer
 from .image_quality_comparator import ImageQualityComparator
 from .utils import (
+    calculate_file_hashes,
     get_image_files,
     move_files_to_subdir,
 )
@@ -34,10 +35,13 @@ async def find_and_move_similar_images(
     image_quality_comparator = ImageQualityComparator()
 
     image_files = await get_image_files(img_folder)
-    await image_analyzer.create_embeddings_if_not_exist(image_files)
-
-    search_results = image_analyzer.similarity_search(
-        image_files, top_k=top_k, limit=limit, threshold=threshold
+    path_hash_mapping = await calculate_file_hashes(image_files)
+    await image_analyzer.create_embeddings_if_not_exist(path_hash_mapping)
+    search_results = await image_analyzer.similarity_search(
+        path_hash_mapping=path_hash_mapping,
+        top_k=top_k,
+        limit=limit,
+        threshold=threshold,
     )
 
     if not search_results:
