@@ -16,7 +16,7 @@ from PIL import Image
 from sentence_transformers import util
 from tqdm.asyncio import tqdm
 
-from .utils import calculate_file_hashes, chunkify
+from .utils import chunkify
 
 MODEL_NAME = "clip-ViT-B-32"
 DB_PATH_NAME = "database"
@@ -55,14 +55,11 @@ class ImageAnalyzer:
             return "./" + DB_PATH_NAME
 
         if getattr(sys, "frozen", False):
-            # Running as compiled application
             app_path = Path(sys.executable).parent.parent
             db_path = app_path / "Contents" / "Resources" / DB_PATH_NAME
         else:
-            # Running in a normal Python environment
             db_path = Path("./" + DB_PATH_NAME)
 
-        # Use Application Support directory on macOS
         if sys.platform == "darwin":
             db_path = (
                 Path.home()
