@@ -35,10 +35,10 @@ async def find_and_move_similar_images(
     image_quality_comparator = ImageQualityComparator()
 
     image_files = await get_image_files(img_folder)
-    path_hash_mapping = await calculate_file_hashes(image_files)
-    await image_analyzer.create_embeddings_if_not_exist(path_hash_mapping)
+    path_to_hash_map = await calculate_file_hashes(image_files)
+    await image_analyzer.update_image_index(path_to_hash_map)
     search_results = await image_analyzer.similarity_search(
-        path_hash_mapping=path_hash_mapping,
+        path_to_hash_map=path_to_hash_map,
         top_k=top_k,
         limit=limit,
         threshold=threshold,

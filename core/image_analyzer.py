@@ -76,20 +76,20 @@ class ImageAnalyzer:
         db_path.mkdir(parents=True, exist_ok=True)
         return str(db_path)
 
-    async def upsert_images(
-        self, image_paths: list[str], path_hash_mapping: dict[str, str]
+    async def add_images(
+        self, image_paths: list[str], path_to_hash_map: dict[str, str]
     ):
         """
         Adds the given image paths to the database.
 
         Parameters:
             image_paths (list[str]): A list of image paths to add to the database.
-            path_hash_mapping (dict[str, str]): A dictionary mapping image paths to their hash values.
+            path_to_hash_map (dict[str, str]): A dictionary mapping image paths to their hash values.
         """
         images = await ImageAnalyzer._async_load_images(image_paths)
-        image_hashes = [path_hash_mapping[path] for path in image_paths]
+        image_hashes = [path_to_hash_map[path] for path in image_paths]
 
-        self.collection.upsert(
+        self.collection.add(
             ids=image_hashes,
             images=images,
             metadatas=[
@@ -100,20 +100,41 @@ class ImageAnalyzer:
             ],
         )
 
-    async def create_embeddings_if_not_exist(self, path_hash_mapping: dict[str, str]):
+    def update_metadata(self, update_path_to_hash_map: dict[str, str]):
+        self.collection.update(
+            ids=list(update_path_to_hash_map.values()),
+            metadatas=[{"path": path} for path in update_path_to_hash_map.keys()],
+        )
+
+    async def update_image_index(self, path_to_hash_map: dict[str, str]):
         """
-        Creates embeddings for the given image paths if they don't already exist in the database.
+        Updates the image index with the given image paths.
         """
 
-        image_ids = list(path_hash_mapping.values())
-
-        existing_hashes = self.collection.get(ids=image_ids)["ids"]
-
+        image_paths = list(path_to_hash_map.keys())
+        image_hashes = list(path_to_hash_map.values())
+        existing_hashes = self.collection.get(ids=image_hashes)["ids"]
         new_image_paths = [
             path
-            for path, hash_value in path_hash_mapping.items()
+            for path, hash_value in path_to_hash_map.items()
             if hash_value not in existing_hashes
         ]
+
+        updated_image_paths = self.collection.get(
+            ids=image_hashes, where={"path": {"$nin": list(image_paths)}}
+        )["ids"]
+
+        if updated_image_paths:
+            print(
+                f"Detected {len(updated_image_paths)} updated image paths, updating metadata...",
+            )
+            hash_path_mapping = {v: k for k, v in path_to_hash_map.items()}
+            update_path_to_hash_map = {
+                hash_path_mapping[image_hash]: image_hash
+                for image_hash in updated_image_paths
+            }
+            self.update_metadata(update_path_to_hash_map)
+            print("Metadata updated.")
 
         if len(new_image_paths) > 0:
             print(f"Creating embeddings for {len(new_image_paths)} images...")
@@ -124,7 +145,7 @@ class ImageAnalyzer:
                 CHUNK_SIZE = ceil(len(new_image_paths) / 10)
                 total_new_embeddings = 0
                 for chunk in chunkify(new_image_paths, chunk_size=CHUNK_SIZE):
-                    await self.upsert_images(chunk, path_hash_mapping)
+                    await self.add_images(chunk, path_to_hash_map)
                     total_new_embeddings += len(chunk)
                     progress_bar.update(len(chunk))
             print(
@@ -227,7 +248,7 @@ class ImageAnalyzer:
 
     async def similarity_search(
         self,
-        path_hash_mapping: dict[str, str],
+        path_to_hash_map: dict[str, str],
         top_k=10,
         limit: int | None = None,
         threshold=0.9,
@@ -243,7 +264,7 @@ class ImageAnalyzer:
         Returns:
             list: A list of tuples containing the similarity score, the paths of the two images.
         """
-        image_hashes = list(path_hash_mapping.values())
+        image_hashes = list(path_to_hash_map.values())
         all_docs = self.collection.get(
             ids=image_hashes,
             limit=limit,
