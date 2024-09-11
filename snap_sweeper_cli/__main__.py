@@ -1,6 +1,10 @@
+import sys
+from core.error_handling import global_exception_handler
 from core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
+
+sys.excepthook = global_exception_handler
 
 
 async def main(args):

@@ -1,11 +1,8 @@
 import time
+
 from .image_analyzer import ImageAnalyzer
 from .image_quality_comparator import ImageQualityComparator
-from .utils import (
-    calculate_file_hashes,
-    get_image_files,
-    move_files_to_subdir,
-)
+from .utils import calculate_file_hashes, get_image_files, move_files_to_subdir
 
 
 async def find_and_move_similar_images(

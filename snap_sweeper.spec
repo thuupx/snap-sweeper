@@ -7,6 +7,9 @@ libsvm_datas, libsvm_binaries, libsvm_hiddenimports = collect_all("libsvm")
 chromadb_datas, chromadb_binaries, chromadb_hiddenimports = collect_all("chromadb")
 brisque_datas, brisque_binaries, brisque_hiddenimports = collect_all("brisque")
 
+snap_sweeper_path = os.path.join(os.path.abspath(os.curdir), "snap_sweeper")
+
+
 ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
 
 a = Analysis(
@@ -23,14 +26,15 @@ a = Analysis(
         *libsvm_datas,
         *chromadb_datas,
         *brisque_datas,
+        (snap_sweeper_path, "snap_sweeper"),
     ],
     hiddenimports=[
         *libsvm_hiddenimports,
         *chromadb_hiddenimports,
         *brisque_hiddenimports,
         "snap_sweeper",
-        "snap_sweeper.snap_sweeper_app",
         "snap_sweeper.app_manager",
+        "snap_sweeper.snap_sweeper_app",
     ],
     hookspath=[],
     hooksconfig={},
@@ -76,4 +80,9 @@ app = BUNDLE(
     name="Snap Sweeper.app",
     bundle_identifier=None,
     icon="snap_sweeper/resources/icon.icns",
+    info_plist={
+        "CFBundleName": "Snap Sweeper",
+        "CFBundleDisplayName": "Snap Sweeper",
+        "CFBundleExecutable": "Snap Sweeper",
+    },
 )

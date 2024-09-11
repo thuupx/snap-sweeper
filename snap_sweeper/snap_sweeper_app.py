@@ -1,12 +1,17 @@
 import asyncio
+import sys
 import threading
 from tkinter import messagebox
 from typing import Any
 
 import customtkinter as ctk
 
+from core.error_handling import global_exception_handler
+
 from .snap_sweeper import SnapSweeper
 from .ui_manager import UIManager
+
+sys.excepthook = global_exception_handler
 
 
 class SnapSweeperApp:

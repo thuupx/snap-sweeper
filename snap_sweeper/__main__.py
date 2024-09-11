@@ -7,6 +7,11 @@ import customtkinter as ctk
 from snap_sweeper.app_manager import AppManager
 from snap_sweeper.snap_sweeper_app import SnapSweeperApp
 
+if sys.platform.startswith("win"):
+    from core.windows.change_app_id import set_app_id
+
+    set_app_id("Snap Sweeper")
+
 
 class SnapSweeperLauncher:
     def __init__(self):
