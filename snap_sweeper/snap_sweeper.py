@@ -15,6 +15,7 @@ class SnapSweeper:
             top_k=int(settings["top_k"]),
             threshold=float(settings["threshold"]),
             sub_folder_name=str(settings["sub_folder_name"]),
+            include_subdirs=bool(settings["include_subdirs"]),
         )
 
     async def move_discarded_images(self, sub_folder_name):

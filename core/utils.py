@@ -45,21 +45,38 @@ async def is_image_file(file_path: str) -> bool:
 
 
 @lru_cache(maxsize=None)
-def list_all_files(directory: str) -> list[str]:
-    """Recursively list all files in the given directory."""
+def list_all_files(directory: str, include_subdirs: bool = True) -> list[str]:
+    """
+    Recursively list all files in the given directory.
+
+    Args:
+        directory (str): The directory to scan.
+        include_subdirs (bool): If True, scan subdirectories. If False, only scan the top-level directory.
+
+    Returns:
+        list[str]: A list of file paths.
+    """
     file_list = []
-    for root, _dirs, files in os.walk(directory):
-        for file in files:
-            file_list.append(os.path.join(root, file))
+    if include_subdirs:
+        for root, _dirs, files in os.walk(directory):
+            for file in files:
+                file_list.append(os.path.join(root, file))
+    else:
+        for file in os.listdir(directory):
+            file_path = os.path.join(directory, file)
+            if os.path.isfile(file_path):
+                file_list.append(file_path)
     return file_list
 
 
-async def get_image_files(img_folder: str) -> list[str]:
+async def get_image_files(img_folder: str, include_subdirs: bool = True) -> list[str]:
     """Asynchronously list all image files in the given directory."""
 
     print("Listing all files...")
     loop = asyncio.get_event_loop()
-    all_files = await loop.run_in_executor(None, list_all_files, img_folder)
+    all_files = await loop.run_in_executor(
+        None, list_all_files, img_folder, include_subdirs
+    )
 
     # Create tasks for checking each file asynchronously
     tasks = [is_image_file(file) for file in all_files]

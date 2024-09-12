@@ -12,6 +12,7 @@ async def find_and_move_similar_images(
     threshold=0.9,
     dry_run=False,
     sub_folder_name="DISCARDED",
+    include_subdirs=True,
 ):
     """
     Find and move similar images based on their similarity.
@@ -31,7 +32,7 @@ async def find_and_move_similar_images(
     image_analyzer = ImageAnalyzer()
     image_quality_comparator = ImageQualityComparator()
 
-    image_files = await get_image_files(img_folder)
+    image_files = await get_image_files(img_folder, include_subdirs)
     path_to_hash_map = await calculate_file_hashes(image_files)
     await image_analyzer.update_image_index(path_to_hash_map)
     search_results = await image_analyzer.similarity_search(
