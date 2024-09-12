@@ -38,7 +38,10 @@ class SnapSweeperApp:
         asyncio.run_coroutine_threadsafe(self.process_images(), self.loop)
 
     def on_sweep_clicked(self) -> None:
-        asyncio.run_coroutine_threadsafe(self.start_sweep(), self.loop)
+        if self.confirm_sweep():
+            asyncio.run_coroutine_threadsafe(self.perform_sweep(), self.loop)
+        else:
+            self.cancel_sweep()
 
     async def process_images(self) -> None:
         try:
@@ -70,12 +73,6 @@ class SnapSweeperApp:
     def handle_processing_error(self, error):
         print(error)
         messagebox.showerror("Error", str(error))
-
-    async def start_sweep(self) -> None:
-        if self.confirm_sweep():
-            await self.perform_sweep()
-        else:
-            self.cancel_sweep()
 
     def confirm_sweep(self) -> bool:
         return (

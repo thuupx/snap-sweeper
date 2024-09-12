@@ -51,6 +51,7 @@ class SnapSweeperLauncher:
         self.setup_app()
         self.app_manager.setup_signals(self.root, self.app, self.on_closing)
         self.root.mainloop()
+        self.root.quit()
 
     def on_closing(self):
         self.app.cleanup()
@@ -62,6 +63,7 @@ class SnapSweeperLauncher:
 def main():
     launcher = SnapSweeperLauncher()
     launcher.run()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
