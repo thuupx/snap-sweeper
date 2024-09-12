@@ -1,6 +1,7 @@
 from core.find_and_move_similar_images import (
     find_and_move_similar_images,
 )
+from core.image_analyzer import ImageAnalyzer
 from core.utils import move_files_to_subdir
 
 
@@ -22,7 +23,13 @@ class SnapSweeper:
         discarded_images = list(self.discarded_images)
         print(f"Moving {len(discarded_images)} images to {sub_folder_name}")
         await move_files_to_subdir(discarded_images, sub_folder_name)
+        await self.delete_images(discarded_images)
         print("Completed")
         print(
             f"Now you can review the images again in {sub_folder_name} and delete them manually."
         )
+
+    @staticmethod
+    async def delete_images(image_paths: list[str]):
+        image_analyzer = ImageAnalyzer()
+        await image_analyzer.mark_images_as_deleted(image_paths)

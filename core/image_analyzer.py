@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import os
 import queue
 import sys
@@ -9,6 +10,7 @@ from typing import Any, List
 
 import chromadb
 from chromadb.api.types import IncludeEnum
+from chromadb.types import Metadata
 from chromadb.utils.embedding_functions.sentence_transformer_embedding_function import (
     SentenceTransformerEmbeddingFunction,
 )
@@ -16,7 +18,7 @@ from PIL import Image
 from sentence_transformers import util
 from tqdm.asyncio import tqdm
 
-from .utils import chunkify
+from .utils import calculate_file_hashes, chunkify
 
 MODEL_NAME = "clip-ViT-B-32"
 DB_PATH_NAME = "database"
@@ -92,15 +94,23 @@ class ImageAnalyzer:
             metadatas=[
                 {
                     "path": path,
+                    "deleted": False,
                 }
                 for path in image_paths
             ],
         )
 
     def update_metadata(self, update_path_to_hash_map: dict[str, str]):
+        ids = list(update_path_to_hash_map.values())
         self.collection.update(
-            ids=list(update_path_to_hash_map.values()),
-            metadatas=[{"path": path} for path in update_path_to_hash_map.keys()],
+            ids=ids,
+            metadatas=[
+                {
+                    "path": path,
+                    "deleted": False,
+                }
+                for path in update_path_to_hash_map.keys()
+            ],
         )
 
     async def update_image_index(self, path_to_hash_map: dict[str, str]):
@@ -264,13 +274,14 @@ class ImageAnalyzer:
         image_hashes = list(path_to_hash_map.values())
         all_docs = self.collection.get(
             ids=image_hashes,
+            where={"deleted": {"$ne": True}},
             limit=limit,
             include=[IncludeEnum.embeddings, IncludeEnum.metadatas],
         )
         embeddings: List[Any] = all_docs["embeddings"] or []
         metadatas: List[Any] = all_docs["metadatas"] or []
 
-        duplicates = ImageAnalyzer.paraphrase_mining_embeddings(
+        duplicates = self.paraphrase_mining_embeddings(
             embeddings=embeddings, top_k=top_k, metadatas=metadatas
         )
         near_duplicates = [
@@ -304,3 +315,13 @@ class ImageAnalyzer:
         ]
 
         return valid_pairs
+
+    async def mark_images_as_deleted(self, image_paths: list[str]):
+        path_to_hash_map = await calculate_file_hashes(image_paths)
+        self.collection.update(
+            ids=list(path_to_hash_map.values()),
+            metadatas=[
+                {"deleted": True, "deleted_at": datetime.now().isoformat()}
+                for _ in image_paths
+            ],
+        )

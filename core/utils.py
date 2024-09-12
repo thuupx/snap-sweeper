@@ -159,14 +159,8 @@ async def calculate_file_hashes(file_paths: list[str], max_workers: int | None =
 
     results: dict[str, str] = {}
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        loop = asyncio.get_running_loop()
-        tasks = [
-            loop.run_in_executor(executor, calculate_file_hash, file_path)
-            for file_path in file_paths
-        ]
-        hashed_results = await asyncio.gather(*tasks)
-        for coroutine in hashed_results:
-            result = await coroutine
-            results[result["path"]] = result["hash"]
+    tasks = [calculate_file_hash(file_path) for file_path in file_paths]
+    hashed_results = await asyncio.gather(*tasks)
+    for result in hashed_results:
+        results[result["path"]] = result["hash"]
     return results

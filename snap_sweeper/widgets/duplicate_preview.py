@@ -27,7 +27,8 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         for widget in self.winfo_children():
             widget.destroy()
 
-        self.configure(height=len(self.duplicates) * 64 + 100)
+        self.configure(height=self.master.winfo_height())
+        self._parent_canvas.yview_moveto(0)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         # Add labels for "Best Image" and "Worst Image"
