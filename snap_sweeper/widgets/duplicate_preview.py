@@ -19,6 +19,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         self.current_chunk = 0
         self.total_items = 0
         self.custom_thumbnail_size = custom_thumbnail_size
+        self.ignore_delete_images = []
         self.setup_ui()
         self.bind("<MouseWheel>", self.on_mouse_wheel)
 
@@ -50,10 +51,14 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         )
         worst_label.grid(row=0, column=1, padx=5, pady=(5, 10))
         # Add label for "Similarity score"
-        similarity_label = ctk.CTkLabel(
-            self, text="Similarity score", font=("Arial", 16, "bold")
-        )
+        similarity_label = ctk.CTkLabel(self, text="Score", font=("Arial", 16, "bold"))
         similarity_label.grid(row=0, column=2, padx=5, pady=(5, 10))
+
+        # Add label to check if user want to keep low quality image
+        keep_low_quality_label = ctk.CTkLabel(
+            self, text="Keep?", font=("Arial", 16, "bold")
+        )
+        keep_low_quality_label.grid(row=0, column=3, padx=5, pady=(5, 10))
 
         self.current_chunk = 0
         self.total_items = len(self.duplicates)
@@ -73,8 +78,10 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
     def add_duplicate_lazy(
         self, duplicate: tuple[str, str, float, float, float], i: int
     ):
-        best_image = Image.open(duplicate[0])
-        worst_image = Image.open(duplicate[1])
+        best_image_path = duplicate[0]
+        worst_image_path = duplicate[1]
+        best_image = Image.open(best_image_path)
+        worst_image = Image.open(worst_image_path)
         similarity_score = f"{duplicate[4] * 100:.2f}%"
 
         thumbnail_size = self.custom_thumbnail_size
@@ -110,6 +117,19 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             master=self, text=similarity_score, font=("Arial", 16, "bold")
         )
         similarity_label.grid(row=i + 1, column=2, padx=5, pady=5)
+
+        keep_low_quality_checkbox = ctk.CTkCheckBox(
+            master=self,
+            text="",
+            command=lambda: self.on_keep_low_quality_checkbox_changed(worst_image_path),
+        )
+        keep_low_quality_checkbox.grid(
+            row=i + 1,
+            column=3,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
 
         # Put the images into the queue
         self.image_queue.put((i, image_left, image_right))
@@ -190,3 +210,6 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
 
     def set_thumbnail_size(self, size: int):
         self.custom_thumbnail_size = size
+
+    def on_keep_low_quality_checkbox_changed(self, worst_image_path: str):
+        self.ignore_delete_images.append(worst_image_path)

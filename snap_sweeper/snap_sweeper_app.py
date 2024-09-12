@@ -83,6 +83,14 @@ class SnapSweeperApp:
         )
 
     async def perform_sweep(self) -> None:
+        ignore_delete_images = self.ui_manager.preview_widget.ignore_delete_images
+        print(f"Total ignored delete images: {len(ignore_delete_images)}")
+        to_be_deleted_images = [
+            image
+            for image in self.sweeper.discarded_images
+            if image not in ignore_delete_images
+        ]
+        self.sweeper.discarded_images = to_be_deleted_images
         settings = self.ui_manager.settings_widget.get_settings()
         await self.sweeper.move_discarded_images(settings["sub_folder_name"])
         self.ui_manager.sweep_button.configure(state=ctk.DISABLED)
