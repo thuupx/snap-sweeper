@@ -262,68 +262,63 @@ class ImageAnalyzer:
         max_pairs: int = 500000,
         query_chunk_size: int = 5000,
         corpus_chunk_size: int = 100000,
+        similarity_threshold: float = 0.5,
     ) -> List[Tuple[float, str, str]]:
-        """
-        Finds near-duplicate images based on embeddings stored in the database.
-
-        Args:
-            embeddings: List[List[float]]
-                The embeddings to search for near-duplicates.
-            metadatas: List[Metadata]
-                The metadatas to use for the search.
-            top_k: int
-                The number of near-duplicates to find per embedding.
-            max_pairs: int
-                The maximum number of near-duplicate pairs to return.
-            query_chunk_size: int
-                The size of the query chunk.
-            corpus_chunk_size: int
-                The size of the corpus chunk.
-        Returns:
-            List[Tuple[float, str, str]]: A list containing tuples of similarity score and the paths of the near-duplicate images.
-        """
         import torch
+        from sentence_transformers import util
 
         pairs = []
         embeddings_tensor = torch.tensor(embeddings)
+        total_embeddings = len(embeddings)
 
-        for corpus_start_idx in range(0, len(embeddings), corpus_chunk_size):
-            corpus_end_idx = min(corpus_start_idx + corpus_chunk_size, len(embeddings))
+        for corpus_start_idx in range(0, total_embeddings, corpus_chunk_size):
+            corpus_end_idx = min(corpus_start_idx + corpus_chunk_size, total_embeddings)
             corpus_embeddings = embeddings_tensor[corpus_start_idx:corpus_end_idx]
 
-            for query_start_idx in range(0, len(embeddings), query_chunk_size):
-                query_end_idx = min(query_start_idx + query_chunk_size, len(embeddings))
+            for query_start_idx in range(0, total_embeddings, query_chunk_size):
+                query_end_idx = min(
+                    query_start_idx + query_chunk_size, total_embeddings
+                )
                 query_embeddings = embeddings_tensor[query_start_idx:query_end_idx]
 
                 scores = util.cos_sim(query_embeddings, corpus_embeddings)
 
-                scores_top_k_values, scores_top_k_idx = torch.topk(
-                    scores,
-                    min(top_k, scores.size(1)),
-                    dim=1,
-                    largest=True,
-                    sorted=False,
-                )
+                # Apply similarity threshold
+                high_scores = scores >= similarity_threshold
 
-                for query_itr in range(len(scores)):
-                    for top_k_idx, corpus_itr in enumerate(scores_top_k_idx[query_itr]):
+                if high_scores.any():
+                    scores_top_k_values, scores_top_k_idx = torch.topk(
+                        scores,
+                        min(top_k, scores.size(1)),
+                        dim=1,
+                        largest=True,
+                        sorted=False,
+                    )
+
+                    for query_itr, (values, indices) in enumerate(
+                        zip(scores_top_k_values, scores_top_k_idx)
+                    ):
                         i = query_start_idx + query_itr
-                        j = corpus_start_idx + corpus_itr.item()
+                        for score, j in zip(values, indices):
+                            j = corpus_start_idx + j.item()
+                            if (
+                                i < j and score >= similarity_threshold
+                            ):  # Avoid duplicate pairs and self-comparisons
+                                heapq.heappush(pairs, (-score.item(), i, j))
+                                if len(pairs) > max_pairs:
+                                    heapq.heappop(pairs)
 
-                        if i < j:  # Avoid duplicate pairs and self-comparisons
-                            score = scores_top_k_values[query_itr][top_k_idx].item()
-                            heapq.heappush(pairs, (-score, i, j))
-                            if len(pairs) > max_pairs:
-                                heapq.heappop(pairs)
+                if len(pairs) >= max_pairs:
+                    break
+
+            if len(pairs) >= max_pairs:
+                break
 
         # Convert to final format
-        result: list[tuple[float, str, str]] = []
-        added_pairs: set[tuple[int, int]] = set()
-        for neg_score, i, j in heapq.nlargest(max_pairs, pairs):
-            score = -neg_score
-            if (i, j) not in added_pairs:
-                added_pairs.add((i, j))
-                result.append((score, metadatas[i]["path"], metadatas[j]["path"]))
+        result = [
+            (-neg_score, metadatas[i]["path"], metadatas[j]["path"])
+            for neg_score, i, j in heapq.nlargest(max_pairs, pairs)
+        ]
 
         return result
 
@@ -355,12 +350,12 @@ class ImageAnalyzer:
         embeddings: List[Any] = all_docs["embeddings"] or []
         metadatas: List[Any] = all_docs["metadatas"] or []
 
-        duplicates = self.paraphrase_mining_embeddings_v2(
-            embeddings=embeddings, top_k=top_k, metadatas=metadatas
+        near_duplicates = self.paraphrase_mining_embeddings_v2(
+            embeddings=embeddings,
+            top_k=top_k,
+            metadatas=metadatas,
+            similarity_threshold=threshold,
         )
-        near_duplicates = [
-            entry for entry in duplicates if round(float(entry[0]), 4) >= threshold
-        ]
 
         if limit is not None:
             near_duplicates = near_duplicates[:limit]

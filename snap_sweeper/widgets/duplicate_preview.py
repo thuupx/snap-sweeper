@@ -27,7 +27,15 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         for widget in self.winfo_children():
             widget.destroy()
 
-        self.configure(height=self.master.winfo_height())
+        height = len(self.duplicates) * 64 + 100
+
+        height = (
+            height
+            if height > self.master.winfo_height()
+            else self.master.winfo_height()
+        )
+
+        self.configure(height=height)
         self._parent_canvas.yview_moveto(0)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
