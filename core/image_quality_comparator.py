@@ -67,6 +67,15 @@ class ImageQualityComparator:
     async def perform_image_quality_comparison(
         self, img_pairs: list[tuple[float, str, str]]
     ) -> list[tuple[str, str, float, float, float]]:
+        """
+        Compares the quality of a list of image pairs and returns a list of tuples containing the best and worst image paths, their scores, and the similarity score.
+
+        Parameters:
+            img_pairs (list[tuple[float, str, str]]): A list of tuples containing the similarity score, the paths of the two images.
+
+        Returns:
+            list[tuple[str, str, float, float, float]]: A list of tuples containing the best and worst image paths, their scores, and the similarity score.
+        """
         results = []
         CHUNK_SIZE = 10
 

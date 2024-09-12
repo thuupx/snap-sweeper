@@ -31,7 +31,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
         self._parent_canvas.yview_moveto(0)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-        # Add labels for "Best Image" and "Worst Image"
+        # Add labels for "High quality images" and "Low quality images"
         best_label = ctk.CTkLabel(
             self, text="High quality images", font=("Arial", 16, "bold")
         )
@@ -41,12 +41,15 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             self, text="Low quality images", font=("Arial", 16, "bold")
         )
         worst_label.grid(row=0, column=1, padx=5, pady=(5, 10))
+        # Add label for "Similarity score"
+        similarity_label = ctk.CTkLabel(
+            self, text="Similarity score", font=("Arial", 16, "bold")
+        )
+        similarity_label.grid(row=0, column=2, padx=5, pady=(5, 10))
 
-        # Reset chunk
         self.current_chunk = 0
         self.total_items = len(self.duplicates)
 
-        # Load initial chunk of images
         self.load_next_chunk()
 
     def on_mouse_wheel(self, event: Any):
@@ -64,8 +67,9 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
     ):
         best_image = Image.open(duplicate[0])
         worst_image = Image.open(duplicate[1])
+        similarity_score = f"{duplicate[4] * 100:.2f}%"
 
-        thumbnail_size = 512
+        thumbnail_size = self.custom_thumbnail_size
         padding = 10 * 2
         master = self.master
         width = master.winfo_width()
@@ -94,6 +98,11 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
             light_image=worst_image, dark_image=worst_image, size=right_image_size
         )
 
+        similarity_label = ctk.CTkLabel(
+            master=self, text=similarity_score, font=("Arial", 16, "bold")
+        )
+        similarity_label.grid(row=i + 1, column=2, padx=5, pady=5)
+
         # Put the images into the queue
         self.image_queue.put((i, image_left, image_right))
 
@@ -112,7 +121,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                 )
                 self.left_label.bind(
                     "<Button-1>",
-                    lambda event: self.on_image_clicked(event, image_left),
+                    lambda event: self.on_image_clicked(event, image_left),  # type: ignore
                 )
                 self.left_label.grid(row=i + 1, column=0, padx=5, pady=5)
 
@@ -121,7 +130,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                 )
                 self.right_label.bind(
                     "<Button-1>",
-                    lambda event: self.on_image_clicked(event, image_right),
+                    lambda event: self.on_image_clicked(event, image_right),  # type: ignore
                 )
                 self.right_label.grid(row=i + 1, column=1, padx=5, pady=5)
         except queue.Empty:
