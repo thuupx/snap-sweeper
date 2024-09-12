@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
+import heapq
 import os
 import queue
 import sys
 import time
 from math import ceil
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import chromadb
 from chromadb.api.types import IncludeEnum
@@ -253,6 +254,79 @@ class ImageAnalyzer:
         pairs_list = sorted(pairs_list, key=lambda x: x[0], reverse=True)
         return pairs_list
 
+    @staticmethod
+    def paraphrase_mining_embeddings_v2(
+        embeddings: List[List[float]],
+        metadatas: List[Metadata],
+        top_k: int = 100,
+        max_pairs: int = 500000,
+        query_chunk_size: int = 5000,
+        corpus_chunk_size: int = 100000,
+    ) -> List[Tuple[float, str, str]]:
+        """
+        Finds near-duplicate images based on embeddings stored in the database.
+
+        Args:
+            embeddings: List[List[float]]
+                The embeddings to search for near-duplicates.
+            metadatas: List[Metadata]
+                The metadatas to use for the search.
+            top_k: int
+                The number of near-duplicates to find per embedding.
+            max_pairs: int
+                The maximum number of near-duplicate pairs to return.
+            query_chunk_size: int
+                The size of the query chunk.
+            corpus_chunk_size: int
+                The size of the corpus chunk.
+        Returns:
+            List[Tuple[float, str, str]]: A list containing tuples of similarity score and the paths of the near-duplicate images.
+        """
+        import torch
+
+        pairs = []
+        embeddings_tensor = torch.tensor(embeddings)
+
+        for corpus_start_idx in range(0, len(embeddings), corpus_chunk_size):
+            corpus_end_idx = min(corpus_start_idx + corpus_chunk_size, len(embeddings))
+            corpus_embeddings = embeddings_tensor[corpus_start_idx:corpus_end_idx]
+
+            for query_start_idx in range(0, len(embeddings), query_chunk_size):
+                query_end_idx = min(query_start_idx + query_chunk_size, len(embeddings))
+                query_embeddings = embeddings_tensor[query_start_idx:query_end_idx]
+
+                scores = util.cos_sim(query_embeddings, corpus_embeddings)
+
+                scores_top_k_values, scores_top_k_idx = torch.topk(
+                    scores,
+                    min(top_k, scores.size(1)),
+                    dim=1,
+                    largest=True,
+                    sorted=False,
+                )
+
+                for query_itr in range(len(scores)):
+                    for top_k_idx, corpus_itr in enumerate(scores_top_k_idx[query_itr]):
+                        i = query_start_idx + query_itr
+                        j = corpus_start_idx + corpus_itr.item()
+
+                        if i < j:  # Avoid duplicate pairs and self-comparisons
+                            score = scores_top_k_values[query_itr][top_k_idx].item()
+                            heapq.heappush(pairs, (-score, i, j))
+                            if len(pairs) > max_pairs:
+                                heapq.heappop(pairs)
+
+        # Convert to final format
+        result: list[tuple[float, str, str]] = []
+        added_pairs: set[tuple[int, int]] = set()
+        for neg_score, i, j in heapq.nlargest(max_pairs, pairs):
+            score = -neg_score
+            if (i, j) not in added_pairs:
+                added_pairs.add((i, j))
+                result.append((score, metadatas[i]["path"], metadatas[j]["path"]))
+
+        return result
+
     async def similarity_search(
         self,
         path_to_hash_map: dict[str, str],
@@ -274,18 +348,18 @@ class ImageAnalyzer:
         image_hashes = list(path_to_hash_map.values())
         all_docs = self.collection.get(
             ids=image_hashes,
-            where={"deleted": {"$ne": True}},
+            where={"deleted": False},
             limit=limit,
             include=[IncludeEnum.embeddings, IncludeEnum.metadatas],
         )
         embeddings: List[Any] = all_docs["embeddings"] or []
         metadatas: List[Any] = all_docs["metadatas"] or []
 
-        duplicates = self.paraphrase_mining_embeddings(
+        duplicates = self.paraphrase_mining_embeddings_v2(
             embeddings=embeddings, top_k=top_k, metadatas=metadatas
         )
         near_duplicates = [
-            entry for entry in duplicates if round(float(entry[0]), 2) >= threshold
+            entry for entry in duplicates if round(float(entry[0]), 4) >= threshold
         ]
 
         if limit is not None:

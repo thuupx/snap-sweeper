@@ -47,7 +47,7 @@ async def find_and_move_similar_images(
         print("No near duplicates found.")
         return None, None, "No near duplicates found."
 
-    valid_pairs = ImageAnalyzer.remove_invalid_pairs(search_results)
+    valid_pairs = image_analyzer.remove_invalid_pairs(search_results)
 
     if not valid_pairs:
         print("No valid near duplicates pairs found.")

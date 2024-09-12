@@ -14,9 +14,7 @@ from .utils import chunkify
 class ImageQualityComparator:
     def __init__(self, max_concurrency: int | None = None):
         self.lock = Lock()
-        max_concurrency = (
-            max_concurrency or os.cpu_count() * 2 if os.cpu_count() else 10
-        )
+        max_concurrency = max_concurrency or (os.cpu_count() or 4) * 2
         self.semaphore = asyncio.Semaphore(max_concurrency)
         self.scoring_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
         self.quality_executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)

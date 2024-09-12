@@ -7,12 +7,12 @@ class SettingsWidget(ctk.CTkFrame):
     def __init__(self, *args, master: ctk.CTkFrame, **kwargs):
         super().__init__(*args, master=master, corner_radius=10, **kwargs)
         self.master = master
-        self.threshold = IntVar(value=90)
+        self.threshold = IntVar(value=95)
         self.top_k = IntVar(value=2)
         self.should_move_images = BooleanVar(value=False)
         self.sub_folder_name = StringVar(value="LOW_QUALITY_IMAGES")
         self.image_thumbnail_size = IntVar(value=512)
-        self.include_subdirs = BooleanVar(value=True)
+        self.include_subdirs = BooleanVar(value=False)
 
         self.should_move_images.trace_add("write", self.on_dry_run_changed)
         self.setup_ui()
