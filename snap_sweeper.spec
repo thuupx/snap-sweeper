@@ -1,16 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_data_files
 
 libsvm_datas, libsvm_binaries, libsvm_hiddenimports = collect_all("libsvm")
 chromadb_datas, chromadb_binaries, chromadb_hiddenimports = collect_all("chromadb")
 brisque_datas, brisque_binaries, brisque_hiddenimports = collect_all("brisque")
+ctk_data = collect_data_files("customtkinter")
 
 snap_sweeper_path = os.path.join(os.path.abspath(os.curdir), "snap_sweeper")
 
-
-ctk_data = "./.venv/lib/python3.12/site-packages/customtkinter"
 
 a = Analysis(
     ["snap_sweeper/__main__.py"],
@@ -21,8 +20,8 @@ a = Analysis(
         *brisque_binaries,
     ],
     datas=[
-        (ctk_data, "customtkinter/"),
         ("snap_sweeper/resources", "resources/"),
+        *ctk_data,
         *libsvm_datas,
         *chromadb_datas,
         *brisque_datas,
