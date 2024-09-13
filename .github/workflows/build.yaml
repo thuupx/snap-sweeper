@@ -32,6 +32,13 @@ jobs:
     if: github.event.inputs.platform == 'macos'
     runs-on: macos-latest
     steps:
+      - name: Install LLVM and LibOMP
+        run: |
+          brew install llvm libomp gcc@14
+          echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+          echo "CXX=g++-14" >> $GITHUB_ENV
+          echo "CC=gcc-14" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create Executable
