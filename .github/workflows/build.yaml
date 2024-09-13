@@ -13,22 +13,12 @@ on:
           - linux
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - platform: windows
-            os: windows-latest
-          - platform: macos
-            os: macos-latest
-          - platform: linux
-            os: ubuntu-latest
-    if: github.event.inputs.platform == matrix.platform
+  build-windows:
+    if: github.event.inputs.platform == 'windows'
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Create Executable
         uses: sayyid5416/pyinstaller@v1
         with:
@@ -37,4 +27,31 @@ jobs:
           spec: 'snap_sweeper.spec'
           requirements: 'requirements.txt'
           upload_exe_with_name: 'Snap Sweeper'
-          # upload_exe_with_name: ${{ matrix.platform == 'windows' && 'Snap Sweeper' || '' }}
+
+  build-macos:
+    if: github.event.inputs.platform == 'macos'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.12'
+          pyinstaller_ver: '==6.10.0'
+          spec: 'snap_sweeper.spec'
+          requirements: 'requirements.txt'
+
+  build-linux:
+    if: github.event.inputs.platform == 'linux'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.12'
+          pyinstaller_ver: '==6.10.0'
+          spec: 'snap_sweeper.spec'
+          requirements: 'requirements.txt'
