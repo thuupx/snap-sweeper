@@ -48,7 +48,19 @@ jobs:
           pyinstaller_ver: '==6.10.0'
           spec: 'snap_sweeper.spec'
           requirements: 'requirements.txt'
-          upload_exe_with_name: 'Snap Sweeper'
+
+      - name: Zip Executable
+        run: |
+          zip -r Snap_Sweeper.zip ./dist/Snap\ Sweeper.app
+
+      - name: Upload Executable
+        id: artifact_upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Snap Sweeper"
+          path: "./Snap_Sweeper.zip"
+          compression-level: 6
+
 
   build-linux:
     if: github.event.inputs.platform == 'linux'
