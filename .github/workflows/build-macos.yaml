@@ -7,7 +7,7 @@ env:
   FILE_NAME: 'Snap_Sweeper_MacOS'
 
 jobs:
-  build-macos:
+  build:
     permissions:
       contents: 'read'
       id-token: 'write'

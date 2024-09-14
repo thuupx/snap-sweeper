@@ -7,7 +7,10 @@ env:
   FILE_NAME: 'Snap_Sweeper_Windows'
 
 jobs:
-  build-windows:
+  build:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: windows-latest
     steps:
       - name: Checkout code
