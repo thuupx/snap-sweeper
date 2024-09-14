@@ -1,0 +1,49 @@
+name: Build MacOS Executable
+
+on:
+  workflow_dispatch:
+
+env:
+  FILE_NAME: 'Snap_Sweeper_MacOS'
+
+jobs:
+  build-macos:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: macos-latest
+    steps:
+      - name: Install LLVM and LibOMP
+        run: |
+          brew install llvm libomp
+          echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+          echo "CXX=g++-14" >> $GITHUB_ENV
+          echo "CC=gcc-14" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.12'
+          pyinstaller_ver: '==6.10.0'
+          spec: 'snap_sweeper.spec'
+          requirements: 'requirements.txt'
+
+      - name: Zip Executable
+        run: |
+          cd dist
+          zip -r ../${{ env.FILE_NAME }}.zip "Snap Sweeper.app"
+          cd ..
+
+      - name: Auth to GCP
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - name: Upload Executable to GCS
+        id: 'upload-files'
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: "./${{ env.FILE_NAME }}.zip"
+          destination: 'snap-sweeper-binary'
