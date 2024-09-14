@@ -7,7 +7,7 @@ env:
   FILE_NAME: 'Snap_Sweeper_Windows'
 
 jobs:
-  build:
+  build-and-upload-executable:
     permissions:
       contents: 'read'
       id-token: 'write'
