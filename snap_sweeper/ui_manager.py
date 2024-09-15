@@ -45,7 +45,7 @@ class UIManager:
         )
         self.settings_widget.image_thumbnail_size.trace_add(
             "write",
-            lambda *args: self.preview_widget.set_thumbnail_size(
+            lambda *args: self.preview_widget.set_thumbnail_size(  # type: ignore
                 self.settings_widget.image_thumbnail_size.get()
             ),
         )
@@ -71,6 +71,19 @@ class UIManager:
             orientation="horizontal",
             mode="indeterminate",
         )
+
+        # footer frame
+        footer_frame = ctk.CTkFrame(master=self.root)
+        footer_frame.grid(row=1, column=0, columnspan=2, sticky="ew")
+
+        self.footer_label = ctk.CTkLabel(
+            master=footer_frame,
+            height=20,
+            text="Copyright by PXT 2024, build with ❤️",
+            text_color="gray",
+        )
+
+        self.footer_label.pack(padx=10, pady=10)
 
     def start_processing(self):
         self.btn_scan.configure(state=ctk.DISABLED)
