@@ -13,6 +13,9 @@ jobs:
       id-token: 'write'
     runs-on: windows-latest
     steps:
+      - name: Install LLVM and LibOMP
+        run: |
+          choco install llvm
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Create Executable
