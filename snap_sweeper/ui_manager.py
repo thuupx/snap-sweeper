@@ -27,7 +27,7 @@ class UIManager:
         right_frame.grid(row=0, column=1, padx=(5, 10), pady=10, sticky="nsew")
 
         self.select_folder_widget = SelectFolderWidget(
-            master=right_frame, cursor="pointinghand"
+            master=right_frame, cursor="hand2"
         )
         self.select_folder_widget.pack(
             side=tkinter.TOP, fill=tkinter.X, padx=10, pady=10

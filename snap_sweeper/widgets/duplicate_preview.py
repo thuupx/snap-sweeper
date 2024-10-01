@@ -145,7 +145,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                 i, image_left, image_right = item
 
                 self.left_label = ctk.CTkLabel(
-                    master=self, image=image_left, text="", cursor="pointinghand"
+                    master=self, image=image_left, text="", cursor="hand2"
                 )
                 self.left_label.bind(
                     "<Button-1>",
@@ -154,7 +154,7 @@ class DuplicatePreviewWidget(ctk.CTkScrollableFrame):
                 self.left_label.grid(row=i + 1, column=0, padx=5, pady=5)
 
                 self.right_label = ctk.CTkLabel(
-                    master=self, image=image_right, text="", cursor="pointinghand"
+                    master=self, image=image_right, text="", cursor="hand2"
                 )
                 self.right_label.bind(
                     "<Button-1>",
