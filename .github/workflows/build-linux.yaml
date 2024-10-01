@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FILE_NAME: 'Snap_Sweeper_Linux'
+  FILE_NAME: 'snap-sweeper_ubuntu_x86_64'
 
 jobs:
   build-and-push:
@@ -20,13 +20,13 @@ jobs:
         with:
           python_ver: '3.12'
           pyinstaller_ver: '==6.10.0'
-          spec: 'snap_sweeper.spec'
+          spec: 'snap_sweeper_binary.spec'
           requirements: 'requirements.txt'
 
       - name: Zip Executable
         run: |
           cd dist
-          zip -r ../${{ env.FILE_NAME }}.zip "Snap Sweeper"
+          zip -r ../${{ env.FILE_NAME }}.zip "snap_sweeper"
           cd ..
 
       - name: Auth to GCP

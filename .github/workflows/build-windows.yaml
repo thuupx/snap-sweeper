@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  FILE_NAME: 'Snap_Sweeper_Windows'
+  FILE_NAME: 'snap-sweeper_windows_x86_64'
 
 jobs:
   build-and-push:
@@ -23,12 +23,12 @@ jobs:
         with:
           python_ver: '3.12'
           pyinstaller_ver: '==6.10.0'
-          spec: 'snap_sweeper.spec'
+          spec: 'snap_sweeper_binary.spec'
           requirements: 'requirements.txt'
 
       - name: Zip Executable
         run: |
-          Compress-Archive -Path "dist\Snap Sweeper" -DestinationPath "${{ env.FILE_NAME }}.zip" -Force
+          Compress-Archive -Path "dist\snap_sweeper" -DestinationPath "${{ env.FILE_NAME }}.zip" -Force
 
       - name: Auth to GCP
         uses: 'google-github-actions/auth@v2'

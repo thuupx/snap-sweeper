@@ -68,7 +68,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="Snap Sweeper",
+    name="snap_sweeper",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
