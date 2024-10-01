@@ -28,7 +28,7 @@ jobs:
 
       - name: Zip Executable
         run: |
-          Compress-Archive -Path "dist\snap_sweeper" -DestinationPath "${{ env.FILE_NAME }}.zip" -Force
+          Compress-Archive -Path "dist\snap_sweeper.exe" -DestinationPath "${{ env.FILE_NAME }}.zip" -Force
 
       - name: Auth to GCP
         uses: 'google-github-actions/auth@v2'
